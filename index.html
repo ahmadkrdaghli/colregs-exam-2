@@ -1,0 +1,830 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>COLREGS Part 2 Quiz</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&family=Barlow+Condensed:wght@400;600;700;800&display=swap" rel="stylesheet">
+
+<style>
+/* ── TOKENS ── */
+:root {
+  --bg:       #010812;
+  --surface:  #061828;
+  --card:     #0a2040;
+  --border:   rgba(16,80,160,0.25);
+  --fg:       #b0cce8;
+  --white:    #e4f0fc;
+  --mist:     #7090b8;
+  --fog:      #3a5878;
+  --gold:     #c89010;
+  --gold-m:   #e0aa20;
+  --gold-hi:  #f8cc48;
+  --signal:   #00d8ff;
+  --steel:    #1a6ac8;
+  --sky:      #2888e8;
+  --correct:  #00c87a;
+  --wrong:    #e03050;
+  --font-en:  'Barlow Condensed', sans-serif;
+  --font-ar:  'Tajawal', sans-serif;
+  color-scheme: dark;
+}
+
+*,*::before,*::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; }
+body {
+  font-family: var(--font-ar);
+  background: var(--bg);
+  color: var(--fg);
+  min-height: 100%;
+  overflow-x: hidden;
+}
+
+/* ── STARS BG ── */
+#bgCanvas { position: fixed; inset: 0; z-index: 0; pointer-events: none; }
+
+/* ── LAYOUT ── */
+.page {
+  position: relative; z-index: 1;
+  max-width: 780px; margin: 0 auto;
+  padding: 32px 20px 80px;
+}
+
+/* ── HEADER ── */
+.header {
+  text-align: center;
+  margin-bottom: 36px;
+}
+.header-badge {
+  display: inline-flex; align-items: center; gap: 8px;
+  font-family: var(--font-en); font-size: 11px; letter-spacing: 3px; text-transform: uppercase;
+  color: var(--gold-m); border: 1px solid rgba(200,144,16,.3);
+  background: rgba(200,144,16,.06); padding: 5px 18px; border-radius: 20px;
+  margin-bottom: 16px;
+}
+.badge-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--gold-m); box-shadow: 0 0 6px var(--gold-m); }
+.header h1 {
+  font-family: var(--font-en); font-size: clamp(28px, 6vw, 48px); font-weight: 800;
+  color: var(--white); letter-spacing: 1px; line-height: 1;
+  margin-bottom: 6px;
+}
+.header h1 em { font-style: normal; color: var(--gold-hi); }
+.header-sub {
+  font-family: var(--font-en); font-size: 13px; letter-spacing: 2px; text-transform: uppercase;
+  color: var(--signal); margin-bottom: 24px;
+}
+
+/* ── CONTROLS BAR ── */
+.controls {
+  display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;
+  margin-bottom: 28px;
+}
+.ctrl-left { display: flex; align-items: center; gap: 10px; }
+.q-counter {
+  font-family: var(--font-en); font-size: 13px; letter-spacing: 1px; color: var(--mist);
+}
+.q-counter strong { color: var(--white); font-size: 16px; }
+
+/* Timer */
+.timer-wrap { display: flex; align-items: center; gap: 8px; }
+.timer-ring { position: relative; width: 44px; height: 44px; }
+.timer-ring svg { transform: rotate(-90deg); }
+.timer-ring circle { fill: none; stroke-width: 3; }
+.timer-track { stroke: rgba(16,80,160,.3); }
+.timer-arc  { stroke: var(--signal); stroke-linecap: round; transition: stroke-dashoffset .9s linear, stroke .3s; }
+.timer-val {
+  position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-en); font-size: 13px; font-weight: 700; color: var(--white);
+}
+
+/* Score pill */
+.score-pill {
+  font-family: var(--font-en); font-size: 12px; font-weight: 700; letter-spacing: 1.5px;
+  padding: 5px 14px; border-radius: 20px;
+  border: 1px solid rgba(200,144,16,.3); background: rgba(200,144,16,.08); color: var(--gold-hi);
+}
+
+/* Shuffle btn */
+.btn-shuffle {
+  font-family: var(--font-en); font-size: 12px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase;
+  padding: 8px 20px; border-radius: 10px; cursor: pointer; border: none;
+  background: rgba(26,106,200,.15); border: 1px solid rgba(26,106,200,.35); color: var(--sky);
+  transition: background .2s, border-color .2s;
+}
+.btn-shuffle:hover { background: rgba(26,106,200,.28); border-color: rgba(40,136,232,.6); }
+
+/* ── PROGRESS BAR ── */
+.progress-bar {
+  height: 3px; border-radius: 2px; background: rgba(16,80,160,.2);
+  margin-bottom: 28px; overflow: hidden;
+}
+.progress-fill {
+  height: 100%; border-radius: 2px;
+  background: linear-gradient(90deg, var(--steel), var(--signal));
+  transition: width .4s ease;
+}
+
+/* ── QUESTION CARD ── */
+.q-card {
+  background: linear-gradient(145deg, rgba(6,24,40,.95), rgba(10,32,64,.9));
+  border: 1px solid var(--border); border-radius: 20px;
+  overflow: hidden; position: relative;
+  animation: cardIn .45s cubic-bezier(.16,1,.3,1);
+}
+@keyframes cardIn { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: translateY(0); } }
+.q-card::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+  background: linear-gradient(90deg, var(--steel), var(--signal), var(--sky));
+}
+.q-card-inner { padding: 32px 28px 28px; }
+
+.q-num {
+  font-family: var(--font-en); font-size: 11px; letter-spacing: 3px; text-transform: uppercase;
+  color: var(--signal); margin-bottom: 14px; display: block;
+}
+.q-text {
+  font-family: var(--font-en); font-size: clamp(15px, 2.5vw, 18px); font-weight: 600;
+  color: var(--white); line-height: 1.6; margin-bottom: 28px;
+  direction: ltr; text-align: left;
+}
+
+/* ── OPTIONS ── */
+.options { display: flex; flex-direction: column; gap: 10px; }
+.opt {
+  display: flex; align-items: flex-start; gap: 14px;
+  padding: 14px 18px; border-radius: 12px; cursor: pointer;
+  background: rgba(6,24,40,.6); border: 1px solid rgba(16,80,160,.2);
+  transition: border-color .2s, background .2s, transform .15s;
+  font-family: var(--font-en); font-size: 14px; color: var(--fg);
+  direction: ltr; text-align: left; line-height: 1.5;
+}
+.opt:hover:not(.disabled) { border-color: rgba(40,136,232,.5); background: rgba(10,40,80,.7); transform: translateX(-3px); }
+.opt.disabled { cursor: default; }
+.opt-letter {
+  font-family: var(--font-en); font-size: 12px; font-weight: 700; letter-spacing: 1px;
+  width: 24px; height: 24px; border-radius: 6px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(16,80,160,.2); border: 1px solid rgba(16,80,160,.35); color: var(--sky);
+  margin-top: 1px; transition: background .2s, border-color .2s;
+}
+.opt.correct { background: rgba(0,200,122,.1); border-color: rgba(0,200,122,.45); }
+.opt.correct .opt-letter { background: var(--correct); border-color: var(--correct); color: #000; }
+.opt.wrong   { background: rgba(224,48,80,.1); border-color: rgba(224,48,80,.45); }
+.opt.wrong .opt-letter  { background: var(--wrong); border-color: var(--wrong); color: #fff; }
+
+/* ── TRANSLATION PANEL ── */
+.translation-panel {
+  margin-top: 20px; padding: 18px 20px; border-radius: 14px;
+  background: rgba(200,144,16,.07); border: 1px solid rgba(200,144,16,.2);
+  display: none;
+}
+.translation-panel.show { display: block; animation: fadeUp .35s ease; }
+@keyframes fadeUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+.trans-label {
+  font-family: var(--font-en); font-size: 10px; letter-spacing: 2.5px; text-transform: uppercase;
+  color: var(--gold-m); margin-bottom: 10px; display: block;
+}
+.trans-q {
+  font-size: 15px; font-weight: 500; color: var(--white); line-height: 1.7;
+  direction: rtl; text-align: right; margin-bottom: 12px;
+}
+.trans-a {
+  font-size: 13px; color: var(--correct); direction: rtl; text-align: right; line-height: 1.6;
+}
+.trans-a-label { color: var(--gold-m); font-size: 12px; margin-bottom: 4px; display: block; }
+
+/* ── NEXT BTN ── */
+.btn-next {
+  display: block; width: 100%; margin-top: 22px;
+  font-family: var(--font-en); font-size: 14px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase;
+  padding: 14px; border-radius: 12px; border: none; cursor: pointer;
+  background: linear-gradient(135deg, rgba(16,80,160,.35), rgba(26,106,200,.3));
+  border: 1px solid rgba(26,106,200,.4); color: var(--sky);
+  transition: background .2s, border-color .2s;
+  display: none;
+}
+.btn-next:hover { background: linear-gradient(135deg, rgba(16,80,160,.55), rgba(26,106,200,.5)); border-color: rgba(40,136,232,.7); }
+.btn-next.show { display: block; animation: fadeUp .3s .15s both; }
+
+/* ── RESULTS SCREEN ── */
+.results {
+  text-align: center; display: none;
+  animation: cardIn .5s cubic-bezier(.16,1,.3,1);
+}
+.results.show { display: block; }
+.results-ring { margin: 0 auto 24px; width: 130px; height: 130px; position: relative; }
+.results-ring svg { transform: rotate(-90deg); }
+.results-ring circle { fill: none; stroke-width: 9; }
+.results-score-text {
+  position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center;
+}
+.rs-num { font-family: var(--font-en); font-size: 38px; font-weight: 800; color: var(--white); line-height: 1; }
+.rs-denom { font-family: var(--font-en); font-size: 14px; color: var(--mist); margin-top: 2px; }
+.results h2 { font-family: var(--font-en); font-size: 28px; font-weight: 800; color: var(--white); margin-bottom: 8px; }
+.results-grade { font-family: var(--font-en); font-size: 16px; letter-spacing: 2px; text-transform: uppercase; color: var(--gold-m); margin-bottom: 28px; }
+.results-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 28px; }
+.rstat { background: rgba(6,24,40,.8); border: 1px solid var(--border); border-radius: 14px; padding: 16px 10px; }
+.rstat-val { font-family: var(--font-en); font-size: 28px; font-weight: 800; color: var(--white); }
+.rstat-lbl { font-size: 11px; color: var(--fog); margin-top: 4px; }
+.btn-restart {
+  font-family: var(--font-en); font-size: 14px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase;
+  padding: 14px 40px; border-radius: 12px; border: none; cursor: pointer;
+  background: linear-gradient(135deg, rgba(200,144,16,.2), rgba(248,204,72,.15));
+  border: 1px solid rgba(200,144,16,.4); color: var(--gold-hi);
+  transition: background .2s;
+}
+.btn-restart:hover { background: linear-gradient(135deg, rgba(200,144,16,.38), rgba(248,204,72,.3)); }
+
+/* ── TIMEOUT FLASH ── */
+.timeout-flash {
+  position: fixed; inset: 0; z-index: 50; pointer-events: none;
+  background: rgba(224,48,80,.12);
+  opacity: 0; animation: none;
+}
+.timeout-flash.flash { animation: flashAnim .6s ease; }
+@keyframes flashAnim { 0%,100%{opacity:0} 30%{opacity:1} }
+
+@media (max-width: 520px) {
+  .q-card-inner { padding: 22px 16px 18px; }
+  .opt { padding: 12px 14px; font-size: 13px; }
+  .controls { flex-direction: column; align-items: flex-start; }
+  .results-grid { grid-template-columns: repeat(3,1fr); gap: 8px; }
+}
+</style>
+
+<div id="bgCanvas" style="position:fixed;inset:0;z-index:0;pointer-events:none">
+  <canvas id="cvs" style="width:100%;height:100%"></canvas>
+</div>
+
+<div id="timeoutFlash" class="timeout-flash"></div>
+
+<div class="page">
+  <!-- HEADER -->
+  <div class="header">
+    <div class="header-badge"><div class="badge-dot"></div>COLREGS 1972<div class="badge-dot"></div></div>
+    <h1>قواعد منع التصادم <em>(-2)</em></h1>
+    <div class="header-sub">COLREGS Part 2 · Lights & Shapes · Rules 20–38</div>
+  </div>
+
+  <!-- QUIZ AREA -->
+  <div id="quizArea">
+    <div class="controls">
+      <div class="ctrl-left">
+        <div class="timer-wrap">
+          <div class="timer-ring">
+            <svg width="44" height="44" viewBox="0 0 44 44">
+              <circle class="timer-track" cx="22" cy="22" r="19"/>
+              <circle class="timer-arc" id="timerArc" cx="22" cy="22" r="19"
+                stroke-dasharray="119.4" stroke-dashoffset="0"/>
+            </svg>
+            <div class="timer-val" id="timerVal">60</div>
+          </div>
+        </div>
+        <div class="q-counter">سؤال <strong id="qNum">1</strong> / <span id="qTotal">67</span></div>
+      </div>
+      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+        <div class="score-pill">✓ <span id="scoreDisplay">0</span> / <span id="scoreDenom">0</span></div>
+        <button class="btn-shuffle" onclick="shuffleAndRestart()">🔀 Shuffle</button>
+      </div>
+    </div>
+    <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+
+    <div class="q-card" id="qCard">
+      <div class="q-card-inner">
+        <span class="q-num" id="qNumLabel">QUESTION 1 OF 67</span>
+        <div class="q-text" id="qText"></div>
+        <div class="options" id="optionsWrap"></div>
+        <div class="translation-panel" id="transPanel">
+          <span class="trans-label">📖 الترجمة</span>
+          <div class="trans-q" id="transQ"></div>
+          <span class="trans-a-label">✅ الإجابة الصحيحة:</span>
+          <div class="trans-a" id="transA"></div>
+        </div>
+        <button class="btn-next" id="btnNext" onclick="nextQ()">
+          السؤال التالي ←
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- RESULTS -->
+  <div class="results" id="resultsScreen">
+    <div class="results-ring">
+      <svg width="130" height="130" viewBox="0 0 130 130">
+        <circle class="timer-track" cx="65" cy="65" r="56" stroke="rgba(16,80,160,.2)"/>
+        <circle id="resultArc" cx="65" cy="65" r="56" fill="none" stroke-width="9"
+          stroke-linecap="round"
+          stroke-dasharray="351.9" stroke-dashoffset="351.9"
+          stroke="var(--gold-m)" style="transition:stroke-dashoffset 1.2s ease"/>
+      </svg>
+      <div class="results-score-text">
+        <div class="rs-num" id="rScore">0</div>
+        <div class="rs-denom" id="rDenom">/67</div>
+      </div>
+    </div>
+    <h2 id="rTitle">انتهى الاختبار!</h2>
+    <div class="results-grade" id="rGrade"></div>
+    <div class="results-grid">
+      <div class="rstat"><div class="rstat-val" id="rCorrect" style="color:var(--correct)">0</div><div class="rstat-lbl">صحيح</div></div>
+      <div class="rstat"><div class="rstat-val" id="rWrong" style="color:var(--wrong)">0</div><div class="rstat-lbl">خطأ</div></div>
+      <div class="rstat"><div class="rstat-val" id="rTimeout" style="color:var(--gold-m)">0</div><div class="rstat-lbl">انتهى الوقت</div></div>
+    </div>
+    <button class="btn-restart" onclick="restartQuiz()">🔄 إعادة الاختبار</button>
+  </div>
+</div>
+
+<script>
+/* ── QUESTION BANK ── */
+const BANK = [
+  {
+    q: "What light shall an air-cushion vessel exhibit, when operating in non-displacement mode?",
+    opts: ["The same lights as a power-driven vessel underway.", "An all-round flashing yellow light.", "The same lights as a power-driven vessel underway and an additional all-round flashing yellow light."],
+    a: 2,
+    tq: "ما هو الضوء الذي يجب على سفينة الوسادة الهوائية (الهوفركرافت) إظهاره عند العمل في وضع عدم الإزاحة؟",
+    ta: "نفس أضواء السفينة ذات الدفع الميكانيكي وهي مسافرة، بالإضافة إلى ضوء أصفر وامض محيطي."
+  },
+  {
+    q: "What lights shall a power-driven vessel underway, of less than 7m in length and whose maximum speed does not exceed 7 knots, exhibit?",
+    opts: ["An all-round white light and also, if practicable, sidelights.", "Sidelights.", "A white light which could be exhibited if practicable."],
+    a: 0,
+    tq: "ما هي الأضواء التي يجب على السفينة ذات الدفع الميكانيكي وهي مسافرة، بطول أقل من 7 أمتار وسرعتها القصوى لا تتجاوز 7 عقد، إظهارها؟",
+    ta: "ضوء أبيض محيطي، وإذا أمكن عملياً، أضواء جانبية."
+  },
+  {
+    q: "What range shall an all-round white light of an inconspicuous, partly submerged vessel or object being towed be visible?",
+    opts: ["3 nm.", "2 nm.", "1 nm."],
+    a: 2,
+    tq: "ما هو مدى رؤية الضوء الأبيض المحيطي لسفينة أو جسم غير بارز مغمور جزئياً يتم قطره؟",
+    ta: "1 ميل بحري."
+  },
+  {
+    q: "What lights shall a power-driven vessel of less than 50m in length exhibit when towing and the length of the tow is less than 200m?",
+    opts: ["2 masthead lights in a vertical line, sidelights and a towing light.", "2 masthead lights in a vertical line, sidelights, a sternlight and a towing light.", "Sidelights, a sternlight and a towing light."],
+    a: 1,
+    tq: "ما هي الأضواء التي يجب على السفينة ذات الدفع الميكانيكي بطول أقل من 50م إظهارها عند القطر إذا كان طول القطر أقل من 200م؟",
+    ta: "ضوءا صارٍ في خط رأسي، وأضواء جانبية، وضوء مؤخرة، وضوء قطر."
+  },
+  {
+    q: "What lights shall a power-driven vessel of less than 50m in length exhibit, when towing and the length of the tow exceeds 200m?",
+    opts: ["3 masthead lights in a vertical line and a towing light.", "3 masthead lights in a vertical line, sidelights and a sternlight.", "3 masthead lights in a vertical line, sidelights, a sternlight and a towing light."],
+    a: 2,
+    tq: "ما هي الأضواء التي يجب على السفينة ذات الدفع الميكانيكي بطول أقل من 50م إظهارها عند القطر إذا تجاوز طول القطر 200م؟",
+    ta: "ثلاثة أضواء صارٍ في خط رأسي، وأضواء جانبية، وضوء مؤخرة، وضوء قطر."
+  },
+  {
+    q: "What lights shall a power-driven vessel of more than 50m in length exhibit, when towing and the length of the tow is less than 50 metres?",
+    opts: ["Instead of the masthead lights forward and aft, 2 masthead lights in a vertical line, sidelights, a stern light and a towing light.", "Sidelights, a sternlight and a towing light.", "2 masthead lights in a vertical line, sidelights and a towing light."],
+    a: 0,
+    tq: "ما هي الأضواء التي يجب على السفينة ذات الدفع الميكانيكي بطول أكثر من 50م إظهارها عند القطر إذا كان طول القطر أقل من 50م؟",
+    ta: "بدلاً من أضواء الصارية الأمامية والخلفية، ضوءان للصارية في خط رأسي، وأضواء جانبية، وضوء مؤخرة، وضوء قطر."
+  },
+  {
+    q: "What lights shall a power-driven vessel of more than 50m in length exhibit, when towing and the length of the tow exceeds 200m?",
+    opts: ["3 masthead lights in a vertical line, sidelights and a sternlight.", "Instead of the lights forward aft or aft, 3 masthead lights in a vertical line, sidelights, a sternlight, a towing light.", "3 masthead lights in a vertical line, sidelights and a towing light."],
+    a: 1,
+    tq: "ما هي الأضواء التي يجب على السفينة ذات الدفع الميكانيكي بطول أكثر من 50م إظهارها عند القطر إذا تجاوز طول القطر 200م؟",
+    ta: "بدلاً من الأضواء الأمامية أو الخلفية، ثلاثة أضواء صارٍ في خط رأسي، وأضواء جانبية، وضوء مؤخرة، وضوء قطر."
+  },
+  {
+    q: "What shape shall a power-driven vessel underway exhibit, when the length of the tow exceeds 200m?",
+    opts: ["A diamond.", "A cone with the apex downwards.", "2 cones with apexes together."],
+    a: 0,
+    tq: "ما هو الشكل الذي يجب على السفينة القاطرة إظهاره عندما يتجاوز طول القطر 200م؟",
+    ta: "ماسة (Diamond)."
+  },
+  {
+    q: "Where the shape of the power-driven vessel underway shall be placed, when the length of the tow exceeds 200m?",
+    opts: ["At the fore masthead.", "Where it can best be seen.", "At the afthead."],
+    a: 1,
+    tq: "أين يُوضع الشكل على السفينة القاطرة عندما يتجاوز طول القطر 200م؟",
+    ta: "في المكان الذي يمكن رؤيته بشكل أفضل."
+  },
+  {
+    q: "What light shall a pushing vessel and a vessel being pushed ahead exhibit, when they are rigidly connected in a composite unit?",
+    opts: ["The lights of a tugboat with the length of the tow less than 200m.", "Every vessel shall exhibit her own lights prescribed for the power-driven vessel underway.", "The lights of a single power-driven vessel, underway."],
+    a: 2,
+    tq: "ما هو الضوء الذي يجب على السفينة الدافعة والسفينة المدفوعة إظهاره عندما تكونان متصلتين بصلابة كوحدة مركبة؟",
+    ta: "أضواء سفينة ذات دفع ميكانيكي واحدة مسافرة."
+  },
+  {
+    q: "What lights shall a power-driven vessel exhibit when pushing ahead or towing alongside, this not being the case of a composite unit?",
+    opts: ["2 masthead lights forward in a vertical line, sidelights, a sternlight.", "3 masthead lights in a vertical line, sidelights and a towing light.", "Sidelights and a towing light."],
+    a: 0,
+    tq: "ما هي الأضواء التي يجب على السفينة ذات الدفع الميكانيكي إظهارها عند الدفع للأمام أو القطر بالجانب (وليس وحدة مركبة)؟",
+    ta: "ضوءان للصارية في الأمام في خط رأسي، وأضواء جانبية، وضوء مؤخرة."
+  },
+  {
+    q: "What lights shall the objects or vessels being towed exhibit, other than inconspicuous vessels or objects?",
+    opts: ["Masthead lights and a sternlight.", "Sidelights and a sternlight.", "Towing lights and a sternlight."],
+    a: 1,
+    tq: "ما هي الأضواء التي يجب على الأجسام أو السفن المقطورة إظهارها (غير الأجسام غير البارزة)؟",
+    ta: "أضواء جانبية وضوء مؤخرة."
+  },
+  {
+    q: "What shape shall a power-driven vessel being towed exhibit, when the length of the tow exceeds 200m?",
+    opts: ["A cone with the apex downward.", "A diamond.", "Two black cones with apexes together."],
+    a: 1,
+    tq: "ما هو الشكل الذي يجب على السفينة المقطورة إظهاره عندما يتجاوز طول القطر 200م؟",
+    ta: "ماسة (Diamond)."
+  },
+  {
+    q: "Where the shape of a vessel being towed shall be placed when the length of the tow exceeds 200m?",
+    opts: ["At the foremast head.", "At the aftermast head.", "Where it can best be seen."],
+    a: 2,
+    tq: "أين يُوضع الشكل على السفينة المقطورة عندما يتجاوز طول القطر 200م؟",
+    ta: "في المكان الذي يمكن رؤيته بشكل أفضل."
+  },
+  {
+    q: "What lights shall a vessel being pushed ahead exhibit, this not being the case of a composite unit?",
+    opts: ["She shall exhibit the sidelights at the forward end.", "The masthead light and sidelights.", "The masthead light and a sternlight."],
+    a: 0,
+    tq: "ما هي الأضواء التي يجب على السفينة المدفوعة للأمام إظهارها (وليس وحدة مركبة)؟",
+    ta: "تُظهر الأضواء الجانبية في الطرف الأمامي."
+  },
+  {
+    q: "What lights shall a vessel being towed alongside exhibit?",
+    opts: ["The masthead lights and a sternlight.", "A sternlight and sidelights at the forward end.", "Sidelights at the forward end."],
+    a: 1,
+    tq: "ما هي الأضواء التي يجب على السفينة المقطورة بالجانب إظهارها؟",
+    ta: "ضوء مؤخرة وأضواء جانبية في الطرف الأمامي."
+  },
+  {
+    q: "What lights shall an inconspicuous, partly submerged vessel or object less than 25m in breadth exhibit, when being towed?",
+    opts: ["An all-round white light at the forward end.", "An all-round white light at the after end.", "An all-round white light at the forward end and one at the after end."],
+    a: 0,
+    tq: "ما هي الأضواء التي يجب على سفينة أو جسم غير بارز مغمور جزئياً بعرض أقل من 25م إظهارها عند قطره؟",
+    ta: "ضوء أبيض محيطي في الطرف الأمامي."
+  },
+  {
+    q: "What lights shall an inconspicuous, partly submerged vessel or object more than 25m in breadth, exhibit?",
+    opts: ["4 all-round white lights at the after end, forward end and on each side at the extremities of her breadth.", "An all-round white light at the forward end and another all-round white light at the after end.", "Green and red sidelights at the extremities of her breadth."],
+    a: 0,
+    tq: "ما هي الأضواء التي يجب على سفينة أو جسم غير بارز مغمور جزئياً بعرض أكثر من 25م إظهارها؟",
+    ta: "4 أضواء بيضاء محيطية: في الطرف الخلفي، والأمامي، وعلى كل جانب عند أطراف عرضها."
+  },
+  {
+    q: "What lights shall an inconspicuous, partly submerged vessel or object being towed exhibit, when her length exceeds 100m and her breadth exceeds 25m?",
+    opts: ["5 all-round white lights at the forward end, after end, at or near the extremities of her breadth and a light between the forward end and the after end so that the distance between the lights shall not exceed 100m.", "3 all-round white lights.", "4 all-round white lights at the forward end, after end and at the extremities of her breadth."],
+    a: 0,
+    tq: "ما هي الأضواء التي يجب على سفينة أو جسم غير بارز مغمور جزئياً إظهارها عند قطره إذا تجاوز طوله 100م وعرضه 25م؟",
+    ta: "5 أضواء بيضاء محيطية: في الأمام والخلف وعند أطراف العرض وضوء بينهما بحيث لا تتجاوز المسافة بين الأضواء 100م."
+  },
+  {
+    q: "What shape shall an inconspicuous, partly submerged object or vessel exhibit by day when being towed and the length of the tow is less than 200m?",
+    opts: ["A cone apex downwards at the forward end.", "A diamond at or near the after end of the last vessel or object being towed.", "2 black cones, apexes together."],
+    a: 1,
+    tq: "ما هو الشكل الذي يجب على الجسم أو السفينة غير البارزة إظهاره نهاراً عند قطره إذا كان طول القطر أقل من 200م؟",
+    ta: "ماسة عند أو بالقرب من الطرف الخلفي للسفينة أو الجسم الأخير المقطور."
+  },
+  {
+    q: "What shapes shall an inconspicuous, partly submerged object or vessel exhibit by day, when being towed and the length of the tow exceeds 200m?",
+    opts: ["A cone apex upwards at the forward end and an additional one at the after end.", "2 black cones, apexes together.", "A diamond at or near the aftermost extremity and an additional one where it can best be seen and located as far forward as practicable."],
+    a: 2,
+    tq: "ما هي الأشكال التي يجب على الجسم أو السفينة غير البارزة إظهارها نهاراً عند قطره إذا تجاوز طول القطر 200م؟",
+    ta: "ماسة عند الطرف الخلفي وأخرى إضافية في المكان الذي يمكن رؤيته بشكل أفضل وتكون أمامية قدر الإمكان."
+  },
+  {
+    q: "What shall a vessel or object being towed do when, from any sufficient cause it is impracticable to exhibit the lights prescribed by the rules?",
+    opts: ["All possible measures shall be taken to light the vessel or object being towed or at least to indicate the presence of such vessel or object.", "It shall exhibit no light.", "It shall exhibit only the sidelights."],
+    a: 0,
+    tq: "ماذا يجب على السفينة أو الجسم المقطور فعله عندما يكون من غير الممكن عملياً إظهار الأضواء المقررة؟",
+    ta: "يجب اتخاذ جميع التدابير الممكنة لإضاءة السفينة أو الجسم المقطور أو على الأقل الإشارة إلى وجوده."
+  },
+  {
+    q: "What shall a vessel engaged in towing which is not normally engaged in towing operations do, when it is impracticable to exhibit the prescribed lights, when engaged in towing another vessel in distress?",
+    opts: ["She shall navigate with caution the radiotelephone working in order to inform the vessels in the area.", "She shall take all possible measures to indicate the nature of the relationship between the towing vessel and the vessel being towed, in particular by illuminating the towline.", "She shall exhibit the lights for a disabled vessel and will take the towline."],
+    a: 1,
+    tq: "ماذا يجب على السفينة التي تقطر سفينة في ضائقة فعله عندما يكون من غير الممكن عملياً إظهار الأضواء المقررة؟",
+    ta: "يجب عليها اتخاذ جميع التدابير الممكنة للإشارة إلى طبيعة العلاقة بين السفينة القاطرة والمقطورة، ولا سيما عن طريق إضاءة حبل القطر."
+  },
+  {
+    q: "What lights shall a sailing vessel underway exhibit?",
+    opts: ["Sidelights.", "Masthead lights and sidelights.", "Sidelights and a sternlight."],
+    a: 2,
+    tq: "ما هي الأضواء التي يجب على السفينة الشراعية وهي مسافرة إظهارها؟",
+    ta: "أضواء جانبية وضوء مؤخرة."
+  },
+  {
+    q: "What lights shall a sailing vessel underway exhibit, when her length is less than 200m?",
+    opts: ["Sidelights and a sternlight combined in one lantern.", "Sidelights.", "A white light to be exhibited if necessary."],
+    a: 0,
+    tq: "ما هي الأضواء التي يجب على السفينة الشراعية وهي مسافرة إظهارها عندما يكون طولها أقل من 200م؟",
+    ta: "أضواء جانبية وضوء مؤخرة مجمعة في فانوس واحد."
+  },
+  {
+    q: "Where shall a sailing vessel underway carry the lantern, when her length is less than 20m?",
+    opts: ["Anywhere and to be exhibited only if necessary.", "At the top of the mast where it can best be seen.", "At the jack stick."],
+    a: 1,
+    tq: "أين يجب على السفينة الشراعية وهي مسافرة حمل الفانوس عندما يكون طولها أقل من 20م؟",
+    ta: "في قمة الصارية في المكان الذي يمكن رؤيته بشكل أفضل."
+  },
+  {
+    q: "Which are the additional lights a sailing vessel underway may exhibit?",
+    opts: ["An all-round green light at the top of the mast.", "An all-round red light at the top of the mast.", "2 all-round lights in a vertical line, the upper being red and the lower green at the top of the mast."],
+    a: 2,
+    tq: "ما هي الأضواء الإضافية التي يمكن للسفينة الشراعية وهي مسافرة إظهارها؟",
+    ta: "ضوءان محيطيان في خط رأسي في قمة الصارية، العلوي أحمر والسفلي أخضر."
+  },
+  {
+    q: "What lights shall a sailing vessel underway exhibit, when her length is less than 7m?",
+    opts: ["She shall have ready at hand an electric torch or lighted lantern showing a white light which shall be exhibited in sufficient time to prevent collision.", "Sidelights.", "A white light at the masthead."],
+    a: 0,
+    tq: "ما هي الأضواء التي يجب على السفينة الشراعية وهي مسافرة إظهارها عندما يكون طولها أقل من 7م؟",
+    ta: "يجب أن يكون بمتناول اليد مصباح كهربائي أو فانوس مضاء يُظهر ضوءاً أبيض يُعرض في الوقت الكافي لمنع التصادم."
+  },
+  {
+    q: "What lights shall a vessel under oars exhibit?",
+    opts: ["A blue light to be shown at any time.", "A red light.", "If she does not exhibit the lights of a sailing vessel, she shall be ready to show an electric torch or lighted lantern showing a white light."],
+    a: 2,
+    tq: "ما هي الأضواء التي يجب على السفينة التي تسير بالمجاديف إظهارها؟",
+    ta: "إذا لم تُظهر أضواء السفينة الشراعية، يجب أن تكون جاهزة لإظهار مصباح كهربائي أو فانوس مضاء يُظهر ضوءاً أبيض."
+  },
+  {
+    q: "What shape shall a vessel proceeding under sail exhibit, when also being propelled by machinery?",
+    opts: ["A conical shape forward, apex downward, where it can best be seen.", "A diamond where it can best be seen.", "2 black cones with the apexes together."],
+    a: 0,
+    tq: "ما هو الشكل الذي يجب على السفينة المسافرة بالشراع إظهاره عندما تكون مدفوعة أيضاً بالآلة؟",
+    ta: "شكل مخروطي في الأمام بقمة للأسفل في المكان الذي يمكن رؤيته بشكل أفضل."
+  },
+  {
+    q: "When shall a vessel engaged in fishing exhibit the prescribed lights and shapes?",
+    opts: ["In any circumstance.", "While underway and at anchor.", "When underway."],
+    a: 0,
+    tq: "متى يجب على السفينة المشتغلة بالصيد إظهار الأضواء والأشكال المقررة؟",
+    ta: "في أي ظرف كان."
+  },
+  {
+    q: "What lights shall a vessel engaged in trawling exhibit, when not underway?",
+    opts: ["An all-round green light and a masthead light placed higher.", "2 all-round lights in a vertical line, the upper being green and the lower white, a masthead light placed abaft of and higher than the all-round light.", "2 all-round lights in a vertical line, the upper being white and the lower green and a sternlight."],
+    a: 1,
+    tq: "ما هي الأضواء التي يجب على سفينة الجر الشبكي إظهارها عندما لا تكون مسافرة؟",
+    ta: "ضوءان محيطيان في خط رأسي، العلوي أخضر والسفلي أبيض، وضوء صارية خلفي وأعلى منهما."
+  },
+  {
+    q: "What lights shall a vessel engaged in trawling exhibit, when making way through the water?",
+    opts: ["Sidelights, a sternlight and an all-round green light at the masthead.", "Sidelights, 2 lights in a vertical line, the upper being white and the lower green, a masthead light placed abaft of and higher than the green light.", "Sidelights, a sternlight, 2 lights in a vertical line, the upper being green and the lower white, a masthead placed abaft of and higher than the green light."],
+    a: 2,
+    tq: "ما هي الأضواء التي يجب على سفينة الجر الشبكي إظهارها عندما تكون تسير خلال الماء؟",
+    ta: "أضواء جانبية وضوء مؤخرة وضوءان محيطيان في خط رأسي العلوي أخضر والسفلي أبيض وضوء صارية خلفي وأعلى من الأخضر."
+  },
+  {
+    q: "What shapes shall a vessel engaged in trawling exhibit?",
+    opts: ["A shape consisting of 2 cones with their apexes together.", "A diamond shape.", "2 black balls in a vertical line."],
+    a: 0,
+    tq: "ما هي الأشكال التي يجب على سفينة الجر الشبكي إظهارها؟",
+    ta: "شكل يتكون من مخروطين بقمتيهما معاً."
+  },
+  {
+    q: "What shape shall a vessel of less than 20m in length exhibit, when engaged in trawling?",
+    opts: ["A red ball.", "A basket.", "A black diamond."],
+    a: 1,
+    tq: "ما هو الشكل الذي يجب على السفينة بطول أقل من 20م إظهاره عند الاشتغال بالجر الشبكي؟",
+    ta: "سلة."
+  },
+  {
+    q: "What lights shall a fishing vessel other than trawling exhibit, when making way through the water?",
+    opts: ["Sidelights, 2 all-round lights in a vertical line, the upper being white and the lower red.", "2 all-round lights in a vertical line, the upper being red and the lower white and a sternlight.", "Sidelights, a sternlight, 2 all-round lights in a vertical line, the upper being red and the lower white."],
+    a: 2,
+    tq: "ما هي الأضواء التي يجب على سفينة الصيد (غير الجر الشبكي) إظهارها عندما تكون تسير خلال الماء؟",
+    ta: "أضواء جانبية وضوء مؤخرة وضوءان محيطيان في خط رأسي العلوي أحمر والسفلي أبيض."
+  },
+  {
+    q: "What lights shall a vessel engaged in fishing, other than trawling exhibit, when there is outlying gear extending more than 150m horizontally and is making way through the water?",
+    opts: ["Sidelights, a sternlight, 2 all-round lights in a vertical line, the upper being red and the lower white, an all-round white light in the direction of the gear.", "Sidelights, a sternlight, an all-round white light in the direction of the gear.", "Sidelights, a sternlight, two lights in a vertical line, the upper white and the lower red."],
+    a: 0,
+    tq: "ما هي الأضواء التي يجب على سفينة الصيد (غير الجر الشبكي) إظهارها عندما تمتد معداتها أكثر من 150م أفقياً وهي تسير؟",
+    ta: "أضواء جانبية وضوء مؤخرة وضوءان محيطيان في خط رأسي العلوي أحمر والسفلي أبيض وضوء أبيض محيطي في اتجاه المعدات."
+  },
+  {
+    q: "What lights shall a vessel engaged in fishing other than trawling exhibit, when there is outlying gear extending more than 150m horizontally and is not making way through the water?",
+    opts: ["2 all-round lights in a vertical line, the upper being white and the lower red, an all-round red light in the direction of the gear.", "2 lights in a vertical line, the upper being red and the lower white, an all-round white light in the direction of the gear.", "An all-round white light in the direction of the gear."],
+    a: 1,
+    tq: "ما هي الأضواء التي يجب على سفينة الصيد (غير الجر الشبكي) إظهارها عندما تمتد معداتها أكثر من 150م أفقياً ولا تكون تسير؟",
+    ta: "ضوءان في خط رأسي العلوي أحمر والسفلي أبيض، وضوء أبيض محيطي في اتجاه المعدات."
+  },
+  {
+    q: "What shapes shall a fishing vessel other than trawling exhibit, when there is outlying gear extending more than 150m horizontally?",
+    opts: ["A black diamond.", "2 cones with their apexes together.", "2 cones with their apexes together a cone apex upwards in the direction of the gear."],
+    a: 2,
+    tq: "ما هي الأشكال التي يجب على سفينة الصيد (غير الجر الشبكي) إظهارها عندما تمتد معداتها أكثر من 150م أفقياً؟",
+    ta: "مخروطان بقمتيهما معاً ومخروط بقمة للأعلى في اتجاه المعدات."
+  },
+  {
+    q: "What lights and shapes shall a fishing vessel exhibit, when not engaged in fishing?",
+    opts: ["The lights and shapes prescribed for a vessel of her length.", "The lights of a vessel engaged in fishing and making way through the water.", "The lights of a vessel restricted in her ability to manoeuvre."],
+    a: 0,
+    tq: "ما هي الأضواء والأشكال التي يجب على سفينة الصيد إظهارها عندما لا تكون مشتغلة بالصيد؟",
+    ta: "الأضواء والأشكال المقررة لسفينة بطولها."
+  },
+  {
+    q: "What additional lights shall a trawler engaged in fishing exhibit when shooting her nets and fishing in close proximity to other vessel engaged in fishing?",
+    opts: ["An all-round red light.", "2 all-round white lights in a vertical line.", "An all-round green light."],
+    a: 2,
+    tq: "ما هي الأضواء الإضافية التي يجب على سفينة الجر الشبكي إظهارها عند إلقاء شباكها وصيدها بالقرب من سفن صيد أخرى؟",
+    ta: "ضوء أخضر محيطي."
+  },
+  {
+    q: "What additional lights shall a trawler engaged in fishing exhibit, when hauling her nets and fishing in close proximity to other vessels engaged in fishing?",
+    opts: ["2 red lights in a vertical line.", "An all-round red light.", "One white light over one red light in a vertical line."],
+    a: 1,
+    tq: "ما هي الأضواء الإضافية التي يجب على سفينة الجر الشبكي إظهارها عند سحب شباكها وصيدها بالقرب من سفن صيد أخرى؟",
+    ta: "ضوء أحمر محيطي."
+  }
+];
+
+/* ── STATE ── */
+let order = [], idx = 0, score = 0, timeouts = 0, wrongs = 0;
+let timer = null, timeLeft = 60;
+const CIRC = 2 * Math.PI * 19;
+
+function shuffleArray(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function shuffleAndRestart() {
+  order = shuffleArray(BANK.map((_,i)=>i));
+  idx = 0; score = 0; timeouts = 0; wrongs = 0;
+  document.getElementById('scoreDisplay').textContent = 0;
+  document.getElementById('scoreDenom').textContent = 0;
+  document.getElementById('quizArea').style.display = '';
+  document.getElementById('resultsScreen').classList.remove('show');
+  loadQ();
+}
+
+function restartQuiz() {
+  order = BANK.map((_,i)=>i);
+  idx = 0; score = 0; timeouts = 0; wrongs = 0;
+  document.getElementById('scoreDisplay').textContent = 0;
+  document.getElementById('scoreDenom').textContent = 0;
+  document.getElementById('quizArea').style.display = '';
+  document.getElementById('resultsScreen').classList.remove('show');
+  loadQ();
+}
+
+function loadQ() {
+  clearInterval(timer);
+  timeLeft = 60;
+
+  const qi = order[idx];
+  const q = BANK[qi];
+  const total = order.length;
+
+  document.getElementById('qNum').textContent = idx + 1;
+  document.getElementById('qTotal').textContent = total;
+  document.getElementById('qNumLabel').textContent = `QUESTION ${idx+1} OF ${total}`;
+  document.getElementById('qText').textContent = q.q;
+  document.getElementById('progressFill').style.width = ((idx / total) * 100) + '%';
+
+  // options — shuffle option order
+  const optOrder = shuffleArray([0,1,2]);
+  const letters = ['A','B','C'];
+  const wrap = document.getElementById('optionsWrap');
+  wrap.innerHTML = '';
+  optOrder.forEach((origIdx, pos) => {
+    const btn = document.createElement('button');
+    btn.className = 'opt';
+    btn.innerHTML = `<span class="opt-letter">${letters[pos]}</span><span>${q.opts[origIdx]}</span>`;
+    btn.dataset.orig = origIdx;
+    btn.addEventListener('click', () => answer(origIdx, btn, q));
+    wrap.appendChild(btn);
+  });
+
+  document.getElementById('transPanel').classList.remove('show');
+  document.getElementById('btnNext').classList.remove('show');
+
+  // rebuild card animation
+  const card = document.getElementById('qCard');
+  card.style.animation = 'none';
+  card.offsetHeight;
+  card.style.animation = '';
+
+  startTimer(q);
+}
+
+function startTimer(q) {
+  updateTimerUI(60);
+  timer = setInterval(() => {
+    timeLeft--;
+    updateTimerUI(timeLeft);
+    if (timeLeft <= 0) {
+      clearInterval(timer);
+      // timeout
+      timeouts++;
+      showTimeout();
+      revealAnswer(q, null);
+    }
+  }, 1000);
+}
+
+function updateTimerUI(t) {
+  document.getElementById('timerVal').textContent = t;
+  const arc = document.getElementById('timerArc');
+  const offset = CIRC * (1 - t/60);
+  arc.style.strokeDashoffset = offset;
+  arc.style.stroke = t <= 10 ? 'var(--wrong)' : t <= 20 ? 'var(--gold-m)' : 'var(--signal)';
+}
+
+function showTimeout() {
+  const fl = document.getElementById('timeoutFlash');
+  fl.classList.remove('flash');
+  fl.offsetHeight;
+  fl.classList.add('flash');
+}
+
+function answer(origIdx, btn, q) {
+  clearInterval(timer);
+  const isCorrect = origIdx === q.a;
+  if (isCorrect) score++;
+  else wrongs++;
+  document.getElementById('scoreDisplay').textContent = score;
+  document.getElementById('scoreDenom').textContent = idx + 1;
+  revealAnswer(q, origIdx);
+}
+
+function revealAnswer(q, chosen) {
+  const opts = document.querySelectorAll('.opt');
+  opts.forEach(o => {
+    o.classList.add('disabled');
+    const orig = parseInt(o.dataset.orig);
+    if (orig === q.a) o.classList.add('correct');
+    else if (chosen !== null && orig === chosen) o.classList.add('wrong');
+  });
+  document.getElementById('transQ').textContent = q.tq;
+  document.getElementById('transA').textContent = q.ta;
+  document.getElementById('transPanel').classList.add('show');
+  document.getElementById('btnNext').classList.add('show');
+  document.getElementById('btnNext').textContent = idx + 1 < order.length ? 'السؤال التالي ←' : '🏁 النتائج';
+}
+
+function nextQ() {
+  idx++;
+  if (idx >= order.length) {
+    showResults();
+  } else {
+    loadQ();
+  }
+}
+
+function showResults() {
+  document.getElementById('quizArea').style.display = 'none';
+  const screen = document.getElementById('resultsScreen');
+  screen.classList.add('show');
+
+  const total = order.length;
+  const pct = score / total;
+  document.getElementById('rScore').textContent = score;
+  document.getElementById('rDenom').textContent = '/' + total;
+  document.getElementById('rCorrect').textContent = score;
+  document.getElementById('rWrong').textContent = wrongs;
+  document.getElementById('rTimeout').textContent = timeouts;
+
+  let grade, title;
+  if (pct >= 0.9)      { grade = 'ممتاز — Excellent'; title = 'عمل رائع! 🏆'; }
+  else if (pct >= 0.75){ grade = 'جيد جداً — Very Good'; title = 'أداء جيد! ⭐'; }
+  else if (pct >= 0.6) { grade = 'جيد — Good'; title = 'استمر في التدريب!'; }
+  else if (pct >= 0.5) { grade = 'مقبول — Pass'; title = 'تحتاج إلى مراجعة أكثر'; }
+  else                  { grade = 'راجع المادة — Review Needed'; title = 'راجع القواعد وأعد المحاولة'; }
+
+  document.getElementById('rTitle').textContent = title;
+  document.getElementById('rGrade').textContent = grade;
+
+  // animate ring
+  const arc = document.getElementById('resultArc');
+  arc.style.stroke = pct >= 0.75 ? 'var(--correct)' : pct >= 0.5 ? 'var(--gold-m)' : 'var(--wrong)';
+  setTimeout(() => {
+    arc.style.strokeDashoffset = 351.9 * (1 - pct);
+  }, 100);
+}
+
+/* ── CANVAS STARS ── */
+const cvs = document.getElementById('cvs');
+const ctx = cvs.getContext('2d');
+let W, H, stars = [];
+
+function resize() {
+  W = cvs.width = window.innerWidth;
+  H = cvs.height = window.innerHeight;
+}
+function mkStar() {
+  return { x: Math.random()*W, y: Math.random()*H*.7, r: Math.random()*1.2+.2, phase: Math.random()*Math.PI*2, spd: Math.random()*.006+.002 };
+}
+function initStars() { stars = Array.from({length:160}, mkStar); }
+function drawStars(t) {
+  ctx.clearRect(0,0,W,H);
+  for (const s of stars) {
+    const a = .1 + .65*(.5+.5*Math.sin(t*s.spd+s.phase));
+    ctx.beginPath(); ctx.arc(s.x,s.y,s.r,0,Math.PI*2);
+    ctx.fillStyle=`rgba(255,255,255,${a})`; ctx.fill();
+  }
+  requestAnimationFrame(drawStars);
+}
+window.addEventListener('resize', ()=>{ resize(); initStars(); });
+resize(); initStars(); requestAnimationFrame(drawStars);
+
+/* ── INIT ── */
+restartQuiz();
+</script>
+
+</body></html>
