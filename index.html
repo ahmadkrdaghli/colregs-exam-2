@@ -1,0 +1,464 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>COLREGS Part 2 Quiz</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&family=Barlow+Condensed:wght@400;600;700;800&display=swap" rel="stylesheet">
+
+<style>
+:root {
+  --bg:#010812; --surface:#061828; --card:#0a2040; --border:rgba(16,80,160,0.25);
+  --fg:#b0cce8; --white:#e4f0fc; --mist:#7090b8; --fog:#3a5878;
+  --gold:#c89010; --gold-m:#e0aa20; --gold-hi:#f8cc48;
+  --signal:#00d8ff; --steel:#1a6ac8; --sky:#2888e8;
+  --correct:#00c87a; --wrong:#e03050;
+  --rule-bg:rgba(0,216,255,0.06); --rule-bdr:rgba(0,216,255,0.22);
+  --font-en:'Barlow Condensed',sans-serif; --font-ar:'Tajawal',sans-serif;
+  color-scheme:dark;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{font-family:var(--font-ar);background:var(--bg);color:var(--fg);min-height:100%;overflow-x:hidden}
+#bgCanvas{position:fixed;inset:0;z-index:0;pointer-events:none}
+.page{position:relative;z-index:1;max-width:780px;margin:0 auto;padding:32px 20px 80px}
+.header{text-align:center;margin-bottom:36px}
+.header-badge{display:inline-flex;align-items:center;gap:8px;font-family:var(--font-en);font-size:11px;letter-spacing:3px;text-transform:uppercase;color:var(--gold-m);border:1px solid rgba(200,144,16,.3);background:rgba(200,144,16,.06);padding:5px 18px;border-radius:20px;margin-bottom:16px}
+.badge-dot{width:5px;height:5px;border-radius:50%;background:var(--gold-m);box-shadow:0 0 6px var(--gold-m)}
+.header h1{font-family:var(--font-en);font-size:clamp(28px,6vw,48px);font-weight:800;color:var(--white);letter-spacing:1px;line-height:1;margin-bottom:6px}
+.header h1 em{font-style:normal;color:var(--gold-hi)}
+.header-sub{font-family:var(--font-en);font-size:13px;letter-spacing:2px;text-transform:uppercase;color:var(--signal);margin-bottom:24px}
+.controls{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:28px}
+.ctrl-left{display:flex;align-items:center;gap:10px}
+.q-counter{font-family:var(--font-en);font-size:13px;letter-spacing:1px;color:var(--mist)}
+.q-counter strong{color:var(--white);font-size:16px}
+.timer-wrap{display:flex;align-items:center;gap:8px}
+.timer-ring{position:relative;width:44px;height:44px}
+.timer-ring svg{transform:rotate(-90deg)}
+.timer-ring circle{fill:none;stroke-width:3}
+.timer-track{stroke:rgba(16,80,160,.3)}
+.timer-arc{stroke:var(--signal);stroke-linecap:round;transition:stroke-dashoffset .9s linear,stroke .3s}
+.timer-val{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:var(--font-en);font-size:13px;font-weight:700;color:var(--white)}
+.score-pill{font-family:var(--font-en);font-size:12px;font-weight:700;letter-spacing:1.5px;padding:5px 14px;border-radius:20px;border:1px solid rgba(200,144,16,.3);background:rgba(200,144,16,.08);color:var(--gold-hi)}
+.btn-shuffle{font-family:var(--font-en);font-size:12px;font-weight:700;letter-spacing:2px;text-transform:uppercase;padding:8px 20px;border-radius:10px;cursor:pointer;border:none;background:rgba(26,106,200,.15);border:1px solid rgba(26,106,200,.35);color:var(--sky);transition:background .2s,border-color .2s}
+.btn-shuffle:hover{background:rgba(26,106,200,.28);border-color:rgba(40,136,232,.6)}
+.progress-bar{height:3px;border-radius:2px;background:rgba(16,80,160,.2);margin-bottom:28px;overflow:hidden}
+.progress-fill{height:100%;border-radius:2px;background:linear-gradient(90deg,var(--steel),var(--signal));transition:width .4s ease}
+.q-card{background:linear-gradient(145deg,rgba(6,24,40,.95),rgba(10,32,64,.9));border:1px solid var(--border);border-radius:20px;overflow:hidden;position:relative;animation:cardIn .45s cubic-bezier(.16,1,.3,1)}
+@keyframes cardIn{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
+.q-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--steel),var(--signal),var(--sky))}
+.q-card-inner{padding:32px 28px 28px}
+.q-num{font-family:var(--font-en);font-size:11px;letter-spacing:3px;text-transform:uppercase;color:var(--signal);margin-bottom:14px;display:block}
+.q-text{font-family:var(--font-en);font-size:clamp(15px,2.5vw,18px);font-weight:600;color:var(--white);line-height:1.6;margin-bottom:28px;direction:ltr;text-align:left}
+.options{display:flex;flex-direction:column;gap:10px}
+.opt{display:flex;align-items:flex-start;gap:14px;padding:14px 18px;border-radius:12px;cursor:pointer;background:rgba(6,24,40,.6);border:1px solid rgba(16,80,160,.2);transition:border-color .2s,background .2s,transform .15s;font-family:var(--font-en);font-size:14px;color:var(--fg);direction:ltr;text-align:left;line-height:1.5}
+.opt:hover:not(.disabled){border-color:rgba(40,136,232,.5);background:rgba(10,40,80,.7);transform:translateX(-3px)}
+.opt.disabled{cursor:default}
+.opt-letter{font-family:var(--font-en);font-size:12px;font-weight:700;letter-spacing:1px;width:24px;height:24px;border-radius:6px;flex-shrink:0;display:flex;align-items:center;justify-content:center;background:rgba(16,80,160,.2);border:1px solid rgba(16,80,160,.35);color:var(--sky);margin-top:1px;transition:background .2s,border-color .2s}
+.opt.correct{background:rgba(0,200,122,.1);border-color:rgba(0,200,122,.45)}
+.opt.correct .opt-letter{background:var(--correct);border-color:var(--correct);color:#000}
+.opt.wrong{background:rgba(224,48,80,.1);border-color:rgba(224,48,80,.45)}
+.opt.wrong .opt-letter{background:var(--wrong);border-color:var(--wrong);color:#fff}
+.translation-panel{margin-top:20px;padding:18px 20px;border-radius:14px;background:rgba(200,144,16,.07);border:1px solid rgba(200,144,16,.2);display:none}
+.translation-panel.show{display:block;animation:fadeUp .35s ease}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.trans-label{font-family:var(--font-en);font-size:10px;letter-spacing:2.5px;text-transform:uppercase;color:var(--gold-m);margin-bottom:10px;display:block}
+.trans-q{font-size:15px;font-weight:500;color:var(--white);line-height:1.7;direction:rtl;text-align:right;margin-bottom:12px}
+.trans-a{font-size:13px;color:var(--correct);direction:rtl;text-align:right;line-height:1.6}
+.trans-a-label{color:var(--gold-m);font-size:12px;margin-bottom:4px;display:block}
+.rule-panel{margin-top:14px;padding:16px 18px;border-radius:14px;background:var(--rule-bg);border:1px solid var(--rule-bdr);display:none}
+.rule-panel.show{display:block;animation:fadeUp .35s .1s both}
+.rule-panel-header{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.rule-badge{font-family:var(--font-en);font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--signal);background:rgba(0,216,255,.1);border:1px solid rgba(0,216,255,.25);padding:3px 10px;border-radius:20px;white-space:nowrap}
+.rule-panel-label{font-family:var(--font-en);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--mist)}
+.rule-text{font-family:var(--font-en);font-size:13px;color:var(--fg);line-height:1.7;direction:ltr;text-align:left}
+.btn-next{width:100%;margin-top:22px;font-family:var(--font-en);font-size:14px;font-weight:700;letter-spacing:2px;text-transform:uppercase;padding:14px;border-radius:12px;border:none;cursor:pointer;background:linear-gradient(135deg,rgba(16,80,160,.35),rgba(26,106,200,.3));border:1px solid rgba(26,106,200,.4);color:var(--sky);transition:background .2s,border-color .2s;display:none}
+.btn-next:hover{background:linear-gradient(135deg,rgba(16,80,160,.55),rgba(26,106,200,.5));border-color:rgba(40,136,232,.7)}
+.btn-next.show{display:block;animation:fadeUp .3s .15s both}
+.results{text-align:center;display:none;animation:cardIn .5s cubic-bezier(.16,1,.3,1)}
+.results.show{display:block}
+.results-ring{margin:0 auto 24px;width:130px;height:130px;position:relative}
+.results-ring svg{transform:rotate(-90deg)}
+.results-ring circle{fill:none;stroke-width:9}
+.results-score-text{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.rs-num{font-family:var(--font-en);font-size:38px;font-weight:800;color:var(--white);line-height:1}
+.rs-denom{font-family:var(--font-en);font-size:14px;color:var(--mist);margin-top:2px}
+.results h2{font-family:var(--font-en);font-size:28px;font-weight:800;color:var(--white);margin-bottom:8px}
+.results-grade{font-family:var(--font-en);font-size:16px;letter-spacing:2px;text-transform:uppercase;color:var(--gold-m);margin-bottom:28px}
+.results-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:28px}
+.rstat{background:rgba(6,24,40,.8);border:1px solid var(--border);border-radius:14px;padding:16px 10px}
+.rstat-val{font-family:var(--font-en);font-size:28px;font-weight:800;color:var(--white)}
+.rstat-lbl{font-size:11px;color:var(--fog);margin-top:4px}
+.weak-rules-section{margin-bottom:28px;text-align:right;direction:rtl;background:rgba(224,48,80,.06);border:1px solid rgba(224,48,80,.2);border-radius:16px;padding:20px 20px 18px;display:none}
+.weak-rules-section.show{display:block}
+.weak-rules-title{font-size:16px;font-weight:700;color:var(--wrong);margin-bottom:4px}
+.weak-rules-sub{font-size:12px;color:var(--fog);margin-bottom:16px}
+.weak-rule-item{display:flex;align-items:flex-start;gap:10px;margin-bottom:10px;text-align:right;direction:rtl}
+.weak-rule-num{font-family:var(--font-en);font-size:11px;font-weight:700;letter-spacing:1px;color:var(--signal);background:rgba(0,216,255,.08);border:1px solid rgba(0,216,255,.2);padding:2px 10px;border-radius:20px;white-space:nowrap;flex-shrink:0;margin-top:2px}
+.weak-rule-name{font-size:13px;color:var(--fg);line-height:1.6}
+.btn-restart{font-family:var(--font-en);font-size:14px;font-weight:700;letter-spacing:2px;text-transform:uppercase;padding:14px 40px;border-radius:12px;border:none;cursor:pointer;background:linear-gradient(135deg,rgba(200,144,16,.2),rgba(248,204,72,.15));border:1px solid rgba(200,144,16,.4);color:var(--gold-hi);transition:background .2s}
+.btn-restart:hover{background:linear-gradient(135deg,rgba(200,144,16,.38),rgba(248,204,72,.3))}
+.timeout-flash{position:fixed;inset:0;z-index:50;pointer-events:none;background:rgba(224,48,80,.12);opacity:0;animation:none}
+.timeout-flash.flash{animation:flashAnim .6s ease}
+@keyframes flashAnim{0%,100%{opacity:0}30%{opacity:1}}
+@media(max-width:520px){.q-card-inner{padding:22px 16px 18px}.opt{padding:12px 14px;font-size:13px}.controls{flex-direction:column;align-items:flex-start}.results-grid{grid-template-columns:repeat(3,1fr);gap:8px}}
+</style>
+
+<div id="bgCanvas" style="position:fixed;inset:0;z-index:0;pointer-events:none">
+  <canvas id="cvs" style="width:100%;height:100%"></canvas>
+</div>
+<div id="timeoutFlash" class="timeout-flash"></div>
+
+<div class="page">
+  <div class="header">
+    <div class="header-badge"><div class="badge-dot"></div>COLREGS 1972<div class="badge-dot"></div></div>
+    <h1>قواعد منع التصادم <em>(-2)</em></h1>
+    <div class="header-sub">COLREGS Part 2 · Lights & Shapes · Rules 20–38</div>
+  </div>
+
+  <div id="quizArea">
+    <div class="controls">
+      <div class="ctrl-left">
+        <div class="timer-wrap">
+          <div class="timer-ring">
+            <svg width="44" height="44" viewBox="0 0 44 44">
+              <circle class="timer-track" cx="22" cy="22" r="19"/>
+              <circle class="timer-arc" id="timerArc" cx="22" cy="22" r="19" stroke-dasharray="119.4" stroke-dashoffset="0"/>
+            </svg>
+            <div class="timer-val" id="timerVal">60</div>
+          </div>
+        </div>
+        <div class="q-counter">سؤال <strong id="qNum">1</strong> / <span id="qTotal">100</span></div>
+      </div>
+      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+        <div class="score-pill">✓ <span id="scoreDisplay">0</span> / <span id="scoreDenom">0</span></div>
+        <button class="btn-shuffle" onclick="shuffleAndRestart()">🔀 Shuffle</button>
+      </div>
+    </div>
+    <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+
+    <div class="q-card" id="qCard">
+      <div class="q-card-inner">
+        <span class="q-num" id="qNumLabel">QUESTION 1 OF 100</span>
+        <div class="q-text" id="qText"></div>
+        <div class="options" id="optionsWrap"></div>
+        <div class="translation-panel" id="transPanel">
+          <span class="trans-label">📖 الترجمة</span>
+          <div class="trans-q" id="transQ"></div>
+          <span class="trans-a-label">✅ الإجابة الصحيحة:</span>
+          <div class="trans-a" id="transA"></div>
+        </div>
+        <div class="rule-panel" id="rulePanel">
+          <div class="rule-panel-header">
+            <span class="rule-badge" id="ruleBadge">RULE 20</span>
+            <span class="rule-panel-label">📘 نص القاعدة</span>
+          </div>
+          <div class="rule-text" id="ruleTextContent"></div>
+        </div>
+        <button class="btn-next" id="btnNext" onclick="nextQ()">السؤال التالي ←</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="results" id="resultsScreen">
+    <div class="results-ring">
+      <svg width="130" height="130" viewBox="0 0 130 130">
+        <circle class="timer-track" cx="65" cy="65" r="56" stroke="rgba(16,80,160,.2)"/>
+        <circle id="resultArc" cx="65" cy="65" r="56" fill="none" stroke-width="9" stroke-linecap="round" stroke-dasharray="351.9" stroke-dashoffset="351.9" stroke="var(--gold-m)" style="transition:stroke-dashoffset 1.2s ease"/>
+      </svg>
+      <div class="results-score-text">
+        <div class="rs-num" id="rScore">0</div>
+        <div class="rs-denom" id="rDenom">/100</div>
+      </div>
+    </div>
+    <h2 id="rTitle">انتهى الاختبار!</h2>
+    <div class="results-grade" id="rGrade"></div>
+    <div class="results-grid">
+      <div class="rstat"><div class="rstat-val" id="rCorrect" style="color:var(--correct)">0</div><div class="rstat-lbl">صحيح</div></div>
+      <div class="rstat"><div class="rstat-val" id="rWrong" style="color:var(--wrong)">0</div><div class="rstat-lbl">خطأ</div></div>
+      <div class="rstat"><div class="rstat-val" id="rTimeout" style="color:var(--gold-m)">0</div><div class="rstat-lbl">انتهى الوقت</div></div>
+    </div>
+    <div class="weak-rules-section" id="weakRulesSection">
+      <div class="weak-rules-title">⚠️ القواعد التي تحتاج مراجعتها</div>
+      <div class="weak-rules-sub">أخطأت في أسئلة من هذه القواعد — راجعها قبل إعادة الاختبار</div>
+      <div id="weakRulesList"></div>
+    </div>
+    <button class="btn-restart" onclick="restartQuiz()">🔄 إعادة الاختبار</button>
+  </div>
+</div>
+
+<script>
+const RULE_NAMES = {
+  20:'Application — متى تُطبَّق الأضواء',
+  21:'Definitions — تعريفات الأضواء',
+  22:'Visibility of Lights — مدى رؤية الأضواء',
+  23:'Power-driven Vessels Underway — السفن الميكانيكية',
+  24:'Towing and Pushing — القطر والدفع',
+  25:'Sailing Vessels Underway — السفن الشراعية',
+  26:'Fishing Vessels — سفن الصيد',
+  27:'NUC / RAM — غير قادرة على المناورة',
+  28:'Constrained by Draught — مقيدة بالغاطس',
+  29:'Pilot Vessels — سفن الإرشاد',
+  30:'Anchored Vessels & Aground — الراسية والجانحة',
+  31:'Seaplanes — الطائرات البحرية',
+  32:'Definitions (Sound) — تعريفات الأصوات',
+  33:'Sound Signal Equipment — معدات الإشارات الصوتية',
+  34:'Manoeuvring Signals — إشارات المناورة',
+  35:'Restricted Visibility Signals — إشارات الرؤية المحدودة',
+  36:'Signals to Attract Attention — إشارات الانتباه',
+  37:'Distress Signals — إشارات الضائقة',
+  38:'Exemptions — الإعفاءات'
+};
+
+const BANK = [
+  // ── RULE 20 ──
+  {q:"Rule 20 states lights shall be shown from sunset to sunrise. In addition, when else must they be shown?",opts:["Only when another vessel is in sight.","During restricted visibility.","During fog and rain only."],a:1,tq:"القاعدة 20: متى يجب إظهار الأضواء إضافةً لفترة غروب الشمس حتى شروقها؟",ta:"خلال أوقات الرؤية المحدودة.",rule:20,ruleText:"Rule 20(a): The lights prescribed shall be exhibited from sunset to sunrise. They shall, if carried, also be exhibited in restricted visibility and may be exhibited in all other circumstances when deemed necessary."},
+  // ── RULE 20 (2/2) ──
+  {q:"According to Rule 20, may the prescribed lights be shown at times other than sunset to sunrise or restricted visibility?",opts:["No, it is prohibited.","Yes, when deemed necessary.","Only in harbour."],a:1,tq:"وفق القاعدة 20، هل يجوز إظهار الأضواء في أوقات أخرى غير الليل أو الرؤية المحدودة؟",ta:"نعم، عندما يُرى ذلك ضرورياً.",rule:20,ruleText:"Rule 20(a): The lights may also be exhibited from sunrise to sunset in all other circumstances when it is deemed necessary."},
+
+  // ── RULE 21 ──
+  {q:"What colour is a masthead light?",opts:["White.","Yellow.","Green."],a:0,tq:"ما لون ضوء رأس الصارية؟",ta:"أبيض.",rule:21,ruleText:"Rule 21(a) — Masthead light: a white light placed over the fore and aft centreline showing an unbroken light over an arc of 225 degrees."},
+  {q:"What is the arc of visibility of a masthead light?",opts:["135 degrees.","225 degrees.","360 degrees."],a:1,tq:"ما هو قوس رؤية ضوء رأس الصارية؟",ta:"225 درجة.",rule:21,ruleText:"Rule 21(a) — Masthead light: showing an unbroken light over an arc of 225 degrees — from right ahead to 22.5 degrees abaft the beam on either side."},
+  {q:"Which sidelight is green?",opts:["Port (left) side.","Starboard (right) side.","Either side."],a:1,tq:"أي الجانبين يحمل الضوء الأخضر؟",ta:"الجانب الأيمن (Starboard).",rule:21,ruleText:"Rule 21(b) — Sidelights: a green light on the starboard side and a red light on the port side."},
+  {q:"What is the arc of visibility of each sidelight?",opts:["225 degrees.","135 degrees.","112.5 degrees."],a:2,tq:"ما هو قوس رؤية كل ضوء جانبي؟",ta:"112.5 درجة.",rule:21,ruleText:"Rule 21(b) — Sidelights: each showing an unbroken light over an arc of 112.5 degrees — from right ahead to 22.5 degrees abaft the beam."},
+  {q:"What is the arc of visibility of a sternlight?",opts:["360 degrees.","225 degrees.","135 degrees."],a:2,tq:"ما هو قوس رؤية ضوء المؤخرة؟",ta:"135 درجة.",rule:21,ruleText:"Rule 21(c) — Sternlight: a white light at the stern showing 135 degrees — 67.5 degrees from right aft on each side."},
+  {q:"What is a towing light according to Rule 21?",opts:["A red light at the stern showing 135 degrees.","A yellow light at the stern showing 135 degrees.","A white all-round light at the masthead."],a:1,tq:"ما هو ضوء القطر وفق القاعدة 21؟",ta:"ضوء أصفر في المؤخرة يُغطي 135 درجة.",rule:21,ruleText:"Rule 21(d) — Towing light: a yellow light having the same characteristics as the sternlight defined in paragraph (c) of this Rule."},
+  {q:"What is the minimum flash rate of a flashing light as defined in Rule 21?",opts:["60 flashes per minute.","120 flashes per minute.","90 flashes per minute."],a:1,tq:"ما هو الحد الأدنى لمعدل الوميض للضوء الومضي وفق القاعدة 21؟",ta:"120 ومضة في الدقيقة.",rule:21,ruleText:"Rule 21(f) — Flashing light: a light flashing at regular intervals at a frequency of 120 flashes or more per minute."},
+
+  // ── RULE 22 ──
+  {q:"What is the minimum visibility range for a masthead light on a vessel of 50m or more?",opts:["3 nm.","6 nm.","5 nm."],a:1,tq:"الحد الأدنى لمدى رؤية ضوء رأس الصارية على سفينة 50م أو أكثر؟",ta:"6 أميال بحرية.",rule:22,ruleText:"Rule 22 — Visibility of lights: masthead light on a vessel ≥50m in length = 6 miles."},
+  {q:"What is the visibility range for sidelights on a vessel of 12m or more but less than 20m?",opts:["1 nm.","3 nm.","2 nm."],a:2,tq:"مدى رؤية الأضواء الجانبية على سفينة بين 12م و20م؟",ta:"2 ميل بحري.",rule:22,ruleText:"Rule 22 — Sidelight visibility: vessels of 12m or more but less than 20m = 2 miles."},
+  {q:"What is the minimum visibility range for sidelights on vessels less than 12m?",opts:["3 nm.","2 nm.","1 nm."],a:2,tq:"الحد الأدنى لمدى رؤية الأضواء الجانبية على سفن أقل من 12م؟",ta:"1 ميل بحري.",rule:22,ruleText:"Rule 22 — Sidelight visibility: vessels of less than 12m in length = 1 mile."},
+  {q:"What is the visibility range required for an all-round white light on inconspicuous partly submerged towed objects?",opts:["6 nm.","2 nm.","3 nm."],a:2,tq:"مدى رؤية الضوء الأبيض المحيطي على الأجسام المقطورة الغارقة جزئياً؟",ta:"3 أميال بحرية.",rule:22,ruleText:"Rule 22 — All-round lights on inconspicuous, partly submerged vessels or objects being towed = 3 miles."},
+
+  // ── RULE 23 ──
+  {q:"What basic lights must a power-driven vessel underway of 50m or more show?",opts:["Masthead light forward, sidelights and sternlight.","Masthead light forward, second masthead aft (higher), sidelights and sternlight.","All-round white light and sidelights."],a:1,tq:"الأضواء الأساسية للسفينة الميكانيكية السائرة 50م أو أكثر؟",ta:"ضوء صارية أمامي، وضوء صارية خلفي أعلى، وأضواء جانبية، وضوء مؤخرة.",rule:23,ruleText:"Rule 23(a): A power-driven vessel ≥50m underway shall exhibit a masthead light forward, a second masthead light abaft of and higher than the forward one, sidelights and a sternlight."},
+  {q:"Is a second masthead light required for a power-driven vessel less than 50m?",opts:["Yes, always required.","No, it is not required but may be exhibited.","Only if speed exceeds 10 knots."],a:1,tq:"هل يجب على السفينة الميكانيكية أقل من 50م أن تحمل ضوء صارية ثانياً؟",ta:"لا، ليس مطلوباً لكن يجوز إظهاره.",rule:23,ruleText:"Rule 23(a)(ii): The second masthead light is not required for a vessel of less than 50m but may be exhibited."},
+  {q:"What additional light does an air-cushion vessel (hovercraft) show when in non-displacement mode?",opts:["A red flashing all-round light.","A yellow flashing all-round light.","A white flashing all-round light."],a:1,tq:"الضوء الإضافي لسفينة الوسادة الهوائية عند العمل بوضع عدم الإزاحة؟",ta:"ضوء أصفر وامض محيطي.",rule:23,ruleText:"Rule 23(b): An air-cushion vessel in non-displacement mode shall exhibit an all-round flashing yellow light in addition to the lights prescribed in Rule 23(a)."},
+  {q:"What must a power-driven vessel less than 12m exhibit?",opts:["Sidelights and a sternlight only.","An all-round white light and sidelights.","A masthead light and sidelights."],a:1,tq:"ما الذي يجب على السفينة الميكانيكية أقل من 12م إظهاره؟",ta:"ضوء أبيض محيطي وأضواء جانبية.",rule:23,ruleText:"Rule 23(c): A power-driven vessel of less than 12m in length may exhibit an all-round white light and sidelights."},
+
+  // ── RULE 24 ──
+  {q:"How many masthead lights must a towing vessel show when the tow length is 200m or less?",opts:["One.","Two in a vertical line.","Three in a vertical line."],a:1,tq:"عدد أضواء الصارية التي يجب على السفينة القاطرة إظهارها عندما لا يتجاوز القطر 200م؟",ta:"ضوءان في خط رأسي.",rule:24,ruleText:"Rule 24(a)(i): When towing, if tow ≤200m — two masthead lights in a vertical line."},
+  {q:"How many masthead lights must a towing vessel show when the tow length exceeds 200m?",opts:["One.","Two in a vertical line.","Three in a vertical line."],a:2,tq:"عدد أضواء الصارية عندما يتجاوز طول القطر 200م؟",ta:"ثلاثة أضواء في خط رأسي.",rule:24,ruleText:"Rule 24(a)(i): When towing and tow >200m — three masthead lights in a vertical line."},
+  {q:"What shape shall a vessel being towed exhibit when the length of the tow exceeds 200m?",opts:["A ball.","A cone apex downward.","A diamond."],a:2,tq:"ما الشكل الذي تُظهره السفينة المقطورة عندما يتجاوز طول القطر 200م؟",ta:"ماسة.",rule:24,ruleText:"Rule 24(c)(ii): A vessel being towed shall exhibit a diamond shape when the length of the tow exceeds 200m."},
+  {q:"What lights shall a vessel being pushed ahead (not a composite unit) show?",opts:["Sidelights only.","Sidelights and a sternlight.","Sidelights and a masthead light."],a:0,tq:"أضواء السفينة المدفوعة للأمام (ليست وحدة مركبة)؟",ta:"أضواء جانبية فقط.",rule:24,ruleText:"Rule 24(b)(i): A vessel being pushed ahead, not being part of a composite unit, shall exhibit sidelights at the forward end."},
+  {q:"What lights shall a pushing vessel exhibit when not a composite unit?",opts:["Two masthead lights in a vertical line and sidelights.","Sidelights and a sternlight.","Two masthead lights vertically, sidelights and a sternlight."],a:2,tq:"أضواء السفينة الدافعة عندما لا تكون وحدة مركبة؟",ta:"ضوءا صارية في خط رأسي، وأضواء جانبية، وضوء مؤخرة.",rule:24,ruleText:"Rule 24(b)(i): A pushing vessel shall exhibit two masthead lights in a vertical line, sidelights and a sternlight."},
+  {q:"What lights shall an inconspicuous partly submerged vessel or object being towed show when its breadth is less than 25m?",opts:["An all-round white light at each end.","One all-round white light at the forward end only.","One all-round white light at the after end only."],a:0,tq:"أضواء الجسم المقطور الغارق جزئياً بعرض أقل من 25م؟",ta:"ضوء أبيض محيطي في كل طرف.",rule:24,ruleText:"Rule 24(d): An inconspicuous, partly submerged vessel or object being towed with breadth <25m shall exhibit an all-round white light at the forward end and one at the after end."},
+
+  // ── RULE 25 ──
+  {q:"What lights does a sailing vessel underway show?",opts:["Masthead light, sidelights and sternlight.","Sidelights and sternlight only.","Sidelights only."],a:1,tq:"أضواء السفينة الشراعية أثناء السير؟",ta:"أضواء جانبية وضوء مؤخرة فقط.",rule:25,ruleText:"Rule 25(a): A sailing vessel underway shall exhibit sidelights and a sternlight."},
+  {q:"A sailing vessel under 20m may combine sidelights and sternlight in one lantern. Where must it be placed?",opts:["At the bow.","At or near the top of the mast.","Amidships at the rail."],a:1,tq:"الموقع المقرر لفانوس أضواء السفينة الشراعية المجمع أقل من 20م؟",ta:"عند أو بالقرب من قمة الصارية.",rule:25,ruleText:"Rule 25(b): A sailing vessel <20m may combine lights in one lantern carried at or near the top of the mast where it can best be seen."},
+  {q:"What optional lights may a sailing vessel show at the masthead in addition to sidelights and sternlight?",opts:["White over red all-round.","Red over green all-round lights.","Green over white all-round lights."],a:1,tq:"الأضواء الاختيارية للسفينة الشراعية في قمة الصارية؟",ta:"أحمر فوق أخضر (محيطيان).",rule:25,ruleText:"Rule 25(c): A sailing vessel may exhibit at or near the top of the mast an all-round red light above an all-round green light."},
+  {q:"What shall a vessel under 7m proceeding under sail show?",opts:["Full sidelights and sternlight.","An electric torch or lantern showing white light, if practicable sidelights.","All-round white only."],a:1,tq:"ما الذي تُظهره السفينة أقل من 7م وهي تسير بالشراع؟",ta:"مصباح كهربائي أو فانوس يُظهر ضوءاً أبيض، وإذا أمكن، أضواء جانبية.",rule:25,ruleText:"Rule 25(d)(i): A sailing vessel <7m shall have ready at hand an electric torch or lighted lantern showing a white light, exhibited in time to prevent collision."},
+  {q:"What shape shall a vessel show when proceeding under sail AND engine simultaneously?",opts:["A diamond.","A cone, apex downwards, forward where it can best be seen.","Two black balls."],a:1,tq:"الشكل الذي تُظهره السفينة عند الإبحار بالشراع والمحرك في آنٍ واحد؟",ta:"مخروط، قمته للأسفل، في الجزء الأمامي.",rule:25,ruleText:"Rule 25(e): A vessel proceeding under sail when also being propelled by machinery shall exhibit forward where it can best be seen a conical shape, apex downwards."},
+
+  // ── RULE 26 ──
+  {q:"A vessel engaged in fishing shall exhibit the prescribed lights and shapes whether she is underway or at anchor. True or false?",opts:["True.","False — only when underway.","False — only at anchor."],a:0,tq:"هل سفينة الصيد تُظهر الأضواء والأشكال المقررة سواء كانت سائرة أم راسية؟",ta:"صحيح.",rule:26,ruleText:"Rule 26(a): A vessel engaged in fishing, whether underway or at anchor, shall exhibit only the lights and shapes prescribed in this Rule."},
+  {q:"What all-round lights does a trawler exhibit (upper light colour first)?",opts:["White over red.","Green over white.","Red over white."],a:1,tq:"لون الضوء العلوي والسفلي للأضواء المحيطية لسفينة الجر الشبكي؟",ta:"أخضر فوق أبيض.",rule:26,ruleText:"Rule 26(b)(i): A vessel trawling shall exhibit two all-round lights in a vertical line — the upper being green and the lower white."},
+  {q:"When a trawler is making way, what lights are added to the all-round green/white pair?",opts:["A masthead light only.","Sidelights and a sternlight.","A masthead light and sternlight."],a:1,tq:"ما الأضواء التي تُضاف لسفينة الجر الشبكي عند السير؟",ta:"أضواء جانبية وضوء مؤخرة.",rule:26,ruleText:"Rule 26(b)(ii): When making way, in addition to the lights prescribed in (b)(i), she shall exhibit sidelights and a sternlight."},
+  {q:"A fishing vessel other than a trawler shows what pair of all-round lights?",opts:["Green over white.","Red over white.","White over red."],a:1,tq:"الضوءان المحيطيان لسفينة الصيد غير الجر الشبكي؟",ta:"أحمر فوق أبيض.",rule:26,ruleText:"Rule 26(c)(i): A vessel engaged in fishing other than trawling shall exhibit two all-round lights vertically — the upper being red and the lower white."},
+  {q:"What additional light must a non-trawl fishing vessel show if her outlying gear extends more than 150m horizontally?",opts:["An all-round white light or a cone pointing toward the gear.","A flashing yellow light.","An additional sternlight."],a:0,tq:"الضوء الإضافي لسفينة صيد غير جر شبكي إذا امتدت أدوات صيدها أكثر من 150م؟",ta:"ضوء أبيض محيطي أو مخروط يشير نحو الأداة.",rule:26,ruleText:"Rule 26(c)(ii): If outlying gear extends more than 150m from the vessel, an all-round white light or a cone apex upwards shall be exhibited in the direction of the gear."},
+  {q:"What day shape does a trawler exhibit?",opts:["A basket.","A diamond.","Two cones apex-to-apex."],a:2,tq:"الشكل النهاري لسفينة الجر الشبكي؟",ta:"مخروطان قمتاهما متلاصقتان.",rule:26,ruleText:"Rule 26(b)(iii): A vessel engaged in trawling shall exhibit by day two cones with their apexes together."},
+  {q:"A vessel less than 20m engaged in trawling may substitute which day shape for the two cones?",opts:["A ball.","A basket.","A cylinder."],a:1,tq:"الشكل البديل للسفينة أقل من 20م عند الجر الشبكي؟",ta:"سلة.",rule:26,ruleText:"Rule 26(b)(iii): A vessel of less than 20m may exhibit a basket in place of the two cones."},
+
+  // ── RULE 27 ──
+  {q:"How many all-round red lights does a vessel NOT under command (NUC) show when not making way?",opts:["One.","Two.","Three."],a:1,tq:"عدد الأضواء الحمراء المحيطية للسفينة غير قادرة على المناورة (NUC) عند عدم السير؟",ta:"اثنان.",rule:27,ruleText:"Rule 27(a)(i): A vessel not under command shall exhibit two all-round red lights in a vertical line."},
+  {q:"When a NUC vessel is making way, what lights does she add to the two red all-round lights?",opts:["Sidelights only.","A masthead light only.","Sidelights and a sternlight."],a:2,tq:"ما الأضواء التي تُضيفها السفينة غير قادرة على المناورة عند السير؟",ta:"أضواء جانبية وضوء مؤخرة.",rule:27,ruleText:"Rule 27(a)(iii): When making way, a NUC vessel shall exhibit sidelights and a sternlight in addition to the two all-round red lights."},
+  {q:"What day shapes shall a NUC vessel exhibit?",opts:["Three black balls.","Two black balls in a vertical line.","Ball-diamond-ball vertical."],a:1,tq:"الأشكال النهارية للسفينة غير قادرة على المناورة؟",ta:"كرتان سوداوان في خط رأسي.",rule:27,ruleText:"Rule 27(a)(ii): A NUC vessel shall exhibit two shapes consisting of balls in a vertical line where they can best be seen."},
+  {q:"What pattern of lights does a RAM (Restricted in Ability to Manoeuvre) vessel show when not making way?",opts:["Two red all-round lights.","Red-white-red all-round vertically.","Three white all-round lights."],a:1,tq:"نمط أضواء السفينة RAM عند عدم السير؟",ta:"أحمر-أبيض-أحمر محيطيات في خط رأسي.",rule:27,ruleText:"Rule 27(b)(i): A RAM vessel shall exhibit three all-round lights vertically — the highest and lowest red, the middle white."},
+  {q:"What day shapes does a RAM vessel exhibit?",opts:["Three black balls.","Ball-diamond-ball in a vertical line.","Two balls vertically."],a:1,tq:"الأشكال النهارية للسفينة RAM؟",ta:"كرة-ماسة-كرة في خط رأسي.",rule:27,ruleText:"Rule 27(b)(ii): A RAM vessel shall exhibit three shapes vertically — the highest and lowest balls and the middle one a diamond."},
+  {q:"A vessel engaged in dredging with an obstruction on one side shows 2 red all-round lights on that side. What does she show on the CLEAR side?",opts:["2 white all-round lights.","2 green all-round lights.","A single green all-round light."],a:1,tq:"ماذا تُظهر السفينة المجرِّفة على الجانب الخالي من العوائق؟",ta:"ضوءان أخضران محيطيان في خط رأسي.",rule:27,ruleText:"Rule 27(d)(ii): On the side on which another vessel may pass — two all-round green lights in a vertical line."},
+  {q:"How many all-round green lights or balls does a mine-clearance vessel exhibit?",opts:["One green light at the masthead.","Three all-round green lights or three balls.","Two green lights vertically."],a:1,tq:"عدد الأضواء الخضراء المحيطية التي تُظهرها سفينة كسح الألغام؟",ta:"ثلاثة أضواء خضراء محيطية أو ثلاث كرات.",rule:27,ruleText:"Rule 27(f): A vessel engaged in mine clearance operations shall exhibit three all-round green lights or three balls — one near the foremast head and one at each end of the fore yard."},
+
+  // ── RULE 28 ──
+  {q:"A vessel constrained by her draught may show what additional lights?",opts:["Two red all-round vertically.","Three red all-round lights vertically.","A yellow flashing all-round light."],a:1,tq:"الأضواء الإضافية التي يجوز للسفينة المقيدة بغاطسها إظهارها؟",ta:"ثلاثة أضواء حمراء محيطية في خط رأسي.",rule:28,ruleText:"Rule 28: A vessel constrained by her draught may exhibit where they can best be seen three all-round red lights in a vertical line."},
+  {q:"What is the day shape for a vessel constrained by her draught?",opts:["Two black balls.","A black diamond.","A black cylinder."],a:2,tq:"الشكل النهاري للسفينة المقيدة بغاطسها؟",ta:"أسطوانة سوداء.",rule:28,ruleText:"Rule 28: By day, a vessel constrained by her draught may exhibit a cylinder."},
+
+  // ── RULE 29 ──
+  {q:"What two all-round lights does a pilot vessel on duty exhibit at the masthead?",opts:["Red over white.","White over red.","Green over white."],a:1,tq:"الضوءان المحيطيان لسفينة الإرشاد في الخدمة عند الصارية؟",ta:"أبيض فوق أحمر.",rule:29,ruleText:"Rule 29(a)(i): A vessel on pilotage duty shall exhibit at or near the masthead two all-round lights in a vertical line, the upper being white and the lower red."},
+  {q:"When a pilot vessel on duty is underway, what lights does she add?",opts:["A masthead light.","Sidelights and a sternlight.","All-round green light."],a:1,tq:"ما الأضواء التي تُضيفها سفينة الإرشاد عند السير؟",ta:"أضواء جانبية وضوء مؤخرة.",rule:29,ruleText:"Rule 29(a)(ii): When underway, a pilot vessel shall exhibit sidelights and a sternlight in addition to the lights at the masthead."},
+  {q:"When a pilot vessel is at anchor on duty, what does she show in addition to the masthead lights?",opts:["She shows nothing more.","Anchor lights prescribed in Rule 30.","A flashing yellow light."],a:1,tq:"ماذا تُظهر سفينة الإرشاد الراسية أثناء الخدمة؟",ta:"أضواء الإرساء المقررة في القاعدة 30.",rule:29,ruleText:"Rule 29(a)(iii): When at anchor, a pilot vessel shall exhibit the anchor lights or shape prescribed in Rule 30 in addition to the masthead lights."},
+  {q:"What day signal does a pilot vessel exhibit when on duty?",opts:["Code Flag 'A' (Alpha).","Code Flag 'H' (Hotel).","Code Flag 'P' (Papa)."],a:1,tq:"إشارة النهار لسفينة الإرشاد أثناء الخدمة؟",ta:"علم الإشارة H (Hotel).",rule:29,ruleText:"Rule 29: A pilot vessel when not engaged on pilotage duty shall exhibit the lights or shapes prescribed for a similar vessel of her length. When on duty, she flies Code Flag H."},
+
+  // ── RULE 30 ──
+  {q:"Where must the forward anchor light of a vessel 50m or more in length be positioned?",opts:["Aft, near the stern.","In the fore part of the vessel.","Amidships at the highest point."],a:1,tq:"أين يجب وضع ضوء الإرساء الأمامي للسفينة 50م أو أكثر؟",ta:"في الجزء الأمامي من السفينة.",rule:30,ruleText:"Rule 30(a)(i): A vessel at anchor shall exhibit in the fore part an all-round white light or one ball."},
+  {q:"What is the relationship between the forward and after anchor lights of a vessel ≥50m?",opts:["Both at the same height.","The after light shall be lower than the forward one.","The forward light shall be lower than the after one."],a:1,tq:"ما هي العلاقة بين ضوء الإرساء الأمامي والخلفي للسفينة 50م أو أكثر؟",ta:"الضوء الخلفي يجب أن يكون أخفض من الأمامي.",rule:30,ruleText:"Rule 30(a)(ii): The after anchor light shall be at a lower level than the forward light."},
+  {q:"A vessel of less than 50m at anchor may show a single all-round white light. Where?",opts:["At the stern.","Where it can best be seen.","At the bow."],a:1,tq:"أين يُظهر الضوء الأبيض المحيطي الواحد للسفينة أقل من 50م عند الإرساء؟",ta:"في المكان الذي يمكن رؤيته بشكل أفضل.",rule:30,ruleText:"Rule 30(b): A vessel of less than 50m in length may exhibit an all-round white light where it can best be seen."},
+  {q:"What additional duty does a vessel of 100m or more have when at anchor?",opts:["Sound a bell every 30 seconds.","Use working lights to illuminate decks.","Exhibit three red all-round lights."],a:1,tq:"الواجب الإضافي للسفينة 100م أو أكثر عند الإرساء؟",ta:"استخدام أضواء العمل المتاحة لإضاءة الأسطح.",rule:30,ruleText:"Rule 30(c): A vessel of 100m or more in length when at anchor shall also use available working or equivalent lights to illuminate her decks."},
+  {q:"A vessel aground shall show the anchor lights AND what additional signals?",opts:["Two all-round red lights vertically.","Three all-round red lights vertically.","A yellow flashing light."],a:1,tq:"الإشارات الإضافية للسفينة الجانحة بالإضافة لأضواء الإرساء؟",ta:"ثلاثة أضواء حمراء محيطية في خط رأسي.",rule:30,ruleText:"Rule 30(d): A vessel aground shall exhibit the anchor lights and in addition three all-round red lights in a vertical line where they can best be seen."},
+  {q:"What day shape must a vessel at anchor exhibit?",opts:["A diamond.","A ball.","A cylinder."],a:1,tq:"الشكل النهاري الذي تُظهره السفينة الراسية؟",ta:"كرة.",rule:30,ruleText:"Rule 30(a)(i): A vessel at anchor shall exhibit in the fore part a ball as the day shape."},
+  {q:"What day shapes shall a vessel aground exhibit?",opts:["Three black balls.","A cylinder.","A ball and a diamond."],a:0,tq:"الأشكال النهارية للسفينة الجانحة؟",ta:"ثلاث كرات سوداء في خط رأسي.",rule:30,ruleText:"Rule 30(d)(ii): A vessel aground shall exhibit three balls in a vertical line where they can best be seen."},
+
+  // ── RULE 31 ──
+  {q:"When a seaplane or WIG craft cannot exhibit lights of the prescribed characteristics, what shall she do?",opts:["Show no lights to avoid confusion.","Exhibit lights as closely similar as practicable.","Show only a white all-round light."],a:1,tq:"ماذا تفعل الطائرة المائية أو مركبة WIG عند تعذر إظهار الأضواء المقررة؟",ta:"تُظهر أضواءً مشابهة قدر الإمكان.",rule:31,ruleText:"Rule 31: Where it is impracticable for a seaplane or a WIG craft to exhibit lights of the characteristics or in the positions prescribed, she shall exhibit lights as closely similar in characteristics and position as is possible."},
+  {q:"Rule 31 applies to which types of craft?",opts:["Power-driven vessels only.","Seaplanes and WIG craft.","Sailing vessels and rowing boats."],a:1,tq:"القاعدة 31 تنطبق على أي أنواع من المركبات؟",ta:"الطائرات المائية ومركبات الجناح الأرضي (WIG).",rule:31,ruleText:"Rule 31: Rule 31 applies where it is impracticable for a seaplane or a WIG craft to comply with the lights and shapes rules of Part C."},
+
+  // ── RULE 32 ──
+  {q:"How is a 'whistle' defined in Rule 32?",opts:["Any sound signalling appliance capable of producing prescribed blasts.","A bell used in fog.","A gong used on large vessels."],a:0,tq:"كيف تُعرَّف 'الصافرة' في القاعدة 32؟",ta:"أي جهاز إشارة صوتية قادر على إصدار النفخات المقررة.",rule:32,ruleText:"Rule 32(a) — Whistle: a sound-signalling appliance capable of producing the prescribed blasts and which complies with the specifications in Annex III."},
+  // ── RULE 33 ──
+  {q:"According to Rule 33, what sound signalling equipment must a vessel of 100m or more in length carry?",opts:["A whistle only.","A whistle and a bell.","A whistle, a bell, and a gong."],a:2,tq:"معدات الإشارة الصوتية المطلوبة وفق القاعدة 33 على سفينة 100م أو أكثر؟",ta:"صافرة وجرس وقرع (gong).",rule:33,ruleText:"Rule 33(a): A vessel of 100m or more in length shall be provided with a whistle, a bell and a gong."},
+  // ── RULE 34 ──
+  {q:"When a power-driven vessel underway is altering course to starboard, what sound signal must she give?",opts:["Two short blasts.","One short blast.","Three short blasts."],a:1,tq:"ما إشارة صوتية سفينة ميكانيكية تُغير مسارها لليمين؟",ta:"نفخة قصيرة واحدة.",rule:34,ruleText:"Rule 34(a)(i): One short blast — I am altering my course to starboard."},
+  // ── RULE 35 ──
+  {q:"In restricted visibility, what sound signal shall a power-driven vessel making way through the water sound at intervals of not more than 2 minutes?",opts:["Two prolonged blasts.","One prolonged blast.","One short, one prolonged, one short blast."],a:1,tq:"إشارة السفينة الميكانيكية السائرة خلال الرؤية المحدودة كل دقيقتين؟",ta:"نفخة مطوّلة واحدة.",rule:35,ruleText:"Rule 35(a): A power-driven vessel making way through the water shall sound at intervals of not more than 2 minutes one prolonged blast."},
+  // ── RULE 37 ──
+  {q:"Which of the following is a recognised distress signal under Rule 37 / Annex IV?",opts:["Three short blasts on the whistle.","Continuous sounding of any fog-signalling apparatus.","A green rocket parachute flare."],a:1,tq:"أيٌّ من التالي يُعدّ إشارة ضائقة معترفاً بها وفق القاعدة 37؟",ta:"الرنين المستمر لأي جهاز إشارة ضبابية.",rule:37,ruleText:"Rule 37 / Annex IV: Distress signals include continuous sounding with any fog-signalling apparatus."},
+  // ── RULE 38 ──
+  {q:"Rule 38 grants exemptions to vessels complying with the 1960 COLREGS. For how long may such exemptions apply to lights and sound signals?",opts:["Indefinitely.","Until the end of the vessel's service life.","For a period not exceeding 4 years from the date of entry into force of the 1972 COLREGS."],a:2,tq:"المدة التي تمنحها القاعدة 38 كإعفاء للأضواء والإشارات الصوتية؟",ta:"لمدة لا تتجاوز 4 سنوات من تاريخ نفاذ لوائح 1972.",rule:38,ruleText:"Rule 38(a): Lights — provided that the vessel involved complies with the 1960 COLREGS, exemption for a period of 4 years from the date of entry into force of these Regulations."}
+];
+
+/* ── STATE ── */
+let order=[],idx=0,score=0,timeouts=0,wrongs=0,wrongRules={};
+let timer=null,timeLeft=60;
+const CIRC=2*Math.PI*19;
+
+function shuffleArray(arr){const a=[...arr];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a;}
+
+function shuffleAndRestart(){
+  order=shuffleArray(BANK.map((_,i)=>i));
+  idx=0;score=0;timeouts=0;wrongs=0;wrongRules={};
+  document.getElementById('scoreDisplay').textContent=0;
+  document.getElementById('scoreDenom').textContent=0;
+  document.getElementById('quizArea').style.display='';
+  document.getElementById('resultsScreen').classList.remove('show');
+  loadQ();
+}
+
+function restartQuiz(){
+  order=BANK.map((_,i)=>i);
+  idx=0;score=0;timeouts=0;wrongs=0;wrongRules={};
+  document.getElementById('scoreDisplay').textContent=0;
+  document.getElementById('scoreDenom').textContent=0;
+  document.getElementById('quizArea').style.display='';
+  document.getElementById('resultsScreen').classList.remove('show');
+  loadQ();
+}
+
+function loadQ(){
+  clearInterval(timer);timeLeft=60;
+  const qi=order[idx],q=BANK[qi],total=order.length;
+  document.getElementById('qNum').textContent=idx+1;
+  document.getElementById('qTotal').textContent=total;
+  document.getElementById('qNumLabel').textContent=`QUESTION ${idx+1} OF ${total}`;
+  document.getElementById('qText').textContent=q.q;
+  document.getElementById('progressFill').style.width=((idx/total)*100)+'%';
+  const optOrder=shuffleArray([0,1,2]),letters=['A','B','C'];
+  const wrap=document.getElementById('optionsWrap');
+  wrap.innerHTML='';
+  optOrder.forEach((origIdx,pos)=>{
+    const btn=document.createElement('button');
+    btn.className='opt';
+    btn.innerHTML=`<span class="opt-letter">${letters[pos]}</span><span>${q.opts[origIdx]}</span>`;
+    btn.dataset.orig=origIdx;
+    btn.addEventListener('click',()=>answer(origIdx,btn,q));
+    wrap.appendChild(btn);
+  });
+  document.getElementById('transPanel').classList.remove('show');
+  document.getElementById('rulePanel').classList.remove('show');
+  document.getElementById('btnNext').classList.remove('show');
+  const card=document.getElementById('qCard');
+  card.style.animation='none';card.offsetHeight;card.style.animation='';
+  startTimer(q);
+}
+
+function startTimer(q){
+  updateTimerUI(60);
+  timer=setInterval(()=>{
+    timeLeft--;updateTimerUI(timeLeft);
+    if(timeLeft<=0){clearInterval(timer);timeouts++;showTimeout();revealAnswer(q,null);}
+  },1000);
+}
+
+function updateTimerUI(t){
+  document.getElementById('timerVal').textContent=t;
+  const arc=document.getElementById('timerArc');
+  arc.style.strokeDashoffset=CIRC*(1-t/60);
+  arc.style.stroke=t<=10?'var(--wrong)':t<=20?'var(--gold-m)':'var(--signal)';
+}
+
+function showTimeout(){
+  const fl=document.getElementById('timeoutFlash');
+  fl.classList.remove('flash');fl.offsetHeight;fl.classList.add('flash');
+}
+
+function answer(origIdx,btn,q){
+  clearInterval(timer);
+  const isCorrect=origIdx===q.a;
+  if(isCorrect)score++;
+  else{wrongs++;if(q.rule)wrongRules[q.rule]=true;}
+  document.getElementById('scoreDisplay').textContent=score;
+  document.getElementById('scoreDenom').textContent=idx+1;
+  revealAnswer(q,origIdx);
+}
+
+function revealAnswer(q,chosen){
+  document.querySelectorAll('.opt').forEach(o=>{
+    o.classList.add('disabled');
+    const orig=parseInt(o.dataset.orig);
+    if(orig===q.a)o.classList.add('correct');
+    else if(chosen!==null&&orig===chosen)o.classList.add('wrong');
+  });
+  document.getElementById('transQ').textContent=q.tq;
+  document.getElementById('transA').textContent=q.ta;
+  document.getElementById('transPanel').classList.add('show');
+  if(q.rule&&q.ruleText){
+    document.getElementById('ruleBadge').textContent=`RULE ${q.rule}`;
+    document.getElementById('ruleTextContent').textContent=q.ruleText;
+    document.getElementById('rulePanel').classList.add('show');
+  }
+  document.getElementById('btnNext').classList.add('show');
+  document.getElementById('btnNext').textContent=idx+1<order.length?'السؤال التالي ←':'🏁 النتائج';
+}
+
+function nextQ(){idx++;if(idx>=order.length)showResults();else loadQ();}
+
+function showResults(){
+  document.getElementById('quizArea').style.display='none';
+  const screen=document.getElementById('resultsScreen');
+  screen.classList.add('show');
+  const total=order.length,pct=score/total;
+  document.getElementById('rScore').textContent=score;
+  document.getElementById('rDenom').textContent='/'+total;
+  document.getElementById('rCorrect').textContent=score;
+  document.getElementById('rWrong').textContent=wrongs;
+  document.getElementById('rTimeout').textContent=timeouts;
+  let grade,title;
+  if(pct>=.9){grade='ممتاز — Excellent';title='عمل رائع! 🏆';}
+  else if(pct>=.75){grade='جيد جداً — Very Good';title='أداء جيد! ⭐';}
+  else if(pct>=.6){grade='جيد — Good';title='استمر في التدريب!';}
+  else if(pct>=.5){grade='مقبول — Pass';title='تحتاج إلى مراجعة أكثر';}
+  else{grade='راجع المادة — Review Needed';title='راجع القواعد وأعد المحاولة';}
+  document.getElementById('rTitle').textContent=title;
+  document.getElementById('rGrade').textContent=grade;
+  const weakNums=Object.keys(wrongRules).map(Number).sort((a,b)=>a-b);
+  const sec=document.getElementById('weakRulesSection');
+  const list=document.getElementById('weakRulesList');
+  list.innerHTML='';
+  if(weakNums.length>0){
+    sec.classList.add('show');
+    weakNums.forEach(rn=>{
+      const item=document.createElement('div');
+      item.className='weak-rule-item';
+      item.innerHTML=`<span class="weak-rule-name">${RULE_NAMES[rn]||'Rule '+rn}</span><span class="weak-rule-num">RULE ${rn}</span>`;
+      list.appendChild(item);
+    });
+  }
+  const arc=document.getElementById('resultArc');
+  arc.style.stroke=pct>=.75?'var(--correct)':pct>=.5?'var(--gold-m)':'var(--wrong)';
+  setTimeout(()=>{arc.style.strokeDashoffset=351.9*(1-pct);},100);
+}
+
+/* ── CANVAS STARS ── */
+const cvs=document.getElementById('cvs'),ctx=cvs.getContext('2d');
+let W,H,stars=[];
+function resize(){W=cvs.width=window.innerWidth;H=cvs.height=window.innerHeight;}
+function mkStar(){return{x:Math.random()*W,y:Math.random()*H*.7,r:Math.random()*1.2+.2,phase:Math.random()*Math.PI*2,spd:Math.random()*.006+.002};}
+function initStars(){stars=Array.from({length:160},mkStar);}
+function drawStars(t){
+  ctx.clearRect(0,0,W,H);
+  for(const s of stars){const a=.1+.65*(.5+.5*Math.sin(t*s.spd+s.phase));ctx.beginPath();ctx.arc(s.x,s.y,s.r,0,Math.PI*2);ctx.fillStyle=`rgba(255,255,255,${a})`;ctx.fill();}
+  requestAnimationFrame(drawStars);
+}
+window.addEventListener('resize',()=>{resize();initStars();});
+resize();initStars();requestAnimationFrame(drawStars);
+restartQuiz();
+</script>
+
+</body></html>
